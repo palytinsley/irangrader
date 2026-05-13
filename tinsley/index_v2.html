@@ -562,11 +562,19 @@
       justify-content: space-between;
     }
     .rubric-card-head.collapsible { cursor: pointer; }
+    .rubric-card-head > div:first-child { min-width: 0; }
     .rubric-title { display: inline-flex; gap: 0.55rem; align-items: center; font-size: 1.03rem; }
-    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
+    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; flex-shrink: 0; gap: 0.4rem; justify-content: flex-end; }
     .selected-band-chip { background: rgba(74,64,224,0.12); color: var(--primary); }
     .score-state { background: var(--surface-container-low); color: var(--on-surface-variant); }
     .score-points { font-variant-numeric: tabular-nums; padding-inline: 0.52rem; }
+    .score-points.full-points { background: rgba(0,105,71,0.12); color: var(--tertiary); }
+    .score-points.partial-points { background: rgba(74,64,224,0.12); color: var(--primary); }
+    .score-points.zero-points { background: rgba(180,19,64,0.12); color: var(--error); }
+    @media (max-width: 700px) {
+      .rubric-card-head { align-items: stretch; flex-direction: column; }
+      .rubric-head-actions { justify-content: flex-start; }
+    }
     .rubric-performance-grid { display: grid; gap: 0.75rem; }
     .performance-card {
       align-items: flex-start;
@@ -2035,6 +2043,9 @@
         var selectedBand = (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); });
         var hasScore = score !== '';
         var collapsed = hasScore && state.rubricCollapsed[criterion.key] === true;
+        var scoreStateText = getRubricHeaderScoreStateText(score, selectedBand);
+        var scorePointsText = getRubricHeaderPointsText(score, criterion.max);
+        var scorePointsClass = getRubricScorePointsClass(score, criterion.max);
         var article = document.createElement('article');
         article.className = 'rubric-card' + (collapsed ? ' collapsed' : '');
         article.setAttribute('data-criterion', criterion.key);
@@ -2045,8 +2056,8 @@
               '<div class="subtle">0-' + escapeHtml(String(criterion.max)) + ' points</div>' +
             '</div>' +
             '<div class="rubric-head-actions">' +
-              '<span class="' + (selectedBand ? 'selected-band-chip score-state' : 'score-state') + '">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
-              '<span class="score-state score-points"' + (hasScore ? '' : ' hidden') + '>' + (hasScore ? escapeHtml(String(score)) + '/' + escapeHtml(String(criterion.max)) + ' pts' : '') + '</span>' +
+              '<span class="' + (selectedBand ? 'selected-band-chip score-state' : 'score-state') + '">' + escapeHtml(scoreStateText) + '</span>' +
+              '<span class="score-state score-points ' + escapeAttr(scorePointsClass) + '">' + escapeHtml(scorePointsText) + '</span>' +
               (hasScore ? '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>' : '') +
             '</div>' +
           '</div>' +
@@ -2123,19 +2134,16 @@
 
       var stateEl = article.querySelector('.score-state');
       if (stateEl) {
-        stateEl.textContent = selectedBand ? selectedBand.label : score !== '' ? 'Custom score' : 'No score';
+        stateEl.textContent = getRubricHeaderScoreStateText(score, selectedBand);
         stateEl.classList.toggle('selected-band-chip', !!selectedBand);
       }
 
       var pointsEl = article.querySelector('.score-points');
       if (pointsEl) {
-        if (score === '') {
-          pointsEl.textContent = '';
-          pointsEl.hidden = true;
-        } else {
-          pointsEl.textContent = score + '/' + criterion.max + ' pts';
-          pointsEl.hidden = false;
-        }
+        pointsEl.textContent = getRubricHeaderPointsText(score, criterion.max);
+        pointsEl.classList.remove('full-points', 'partial-points', 'zero-points');
+        var pointsClass = getRubricScorePointsClass(score, criterion.max);
+        if (pointsClass) pointsEl.classList.add(pointsClass);
       }
 
       var input = article.querySelector('[data-score-input="' + criterionKey + '"]');
@@ -2654,6 +2662,26 @@
 
     function cloneCriterionComments(source) {
       return Object.assign({}, source || {});
+    }
+
+    function getRubricHeaderScoreStateText(score, selectedBand) {
+      if (selectedBand) return selectedBand.label;
+      if (score !== '') return 'Custom score';
+      return 'Ungraded';
+    }
+
+    function getRubricHeaderPointsText(score, max) {
+      if (score === '') return '-- / ' + max;
+      return String(score) + ' / ' + String(max);
+    }
+
+    function getRubricScorePointsClass(score, max) {
+      if (score === '') return '';
+      var numericScore = Number(score);
+      var numericMax = Number(max);
+      if (numericScore <= 0) return 'zero-points';
+      if (numericScore >= numericMax) return 'full-points';
+      return 'partial-points';
     }
 
     function getDraftCriterionCommentValue(student, key) {
