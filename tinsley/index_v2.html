@@ -1670,7 +1670,7 @@
       return '' +
         '<article class="summary-card">' +
           state.rubric.map(function(criterion) {
-            return '<div class="score-summary-row"><span>' + escapeHtml(criterion.title) + '</span><strong>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</strong></div>';
+            return '<div class="score-summary-row"><span>' + escapeHtml(criterion.title) + '</span><strong data-summary-criterion="' + escapeAttr(criterion.key) + '">' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</strong></div>';
           }).join('') +
           '<div class="score-summary-row" style="justify-content:space-between;align-items:flex-end;border-top:1px solid var(--hairline);padding-top:0.6rem;">' +
             '<div><div class="eyebrow">Overall</div><div class="summary-total number-font">' + escapeHtml(String(total === '' ? '-' : total)) + ' / ' + getCurrentTotalMax() + '</div><div class="subtle">' + (percent === '' ? 'No percent yet' : '(' + percent + '%)') + '</div></div>' +
@@ -1684,6 +1684,77 @@
             '<button class="secondary-btn" id="exportCsvBtn"><i class="ti ti-download"></i> Export CSV</button>' +
           '</div>' +
         '</article>';
+    }
+
+    function syncRubricCardUi(criterionKey) {
+      var article = els.rubricList.querySelector('[data-criterion="' + criterionKey + '"]');
+      if (!article) return;
+      var criterion = state.rubric.find(function(item) { return item.key === criterionKey; });
+      if (!criterion) return;
+      var score = scoreOrBlank(state.selectedStudent.scores[criterionKey]);
+      var selectedBand = score !== '' ? (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); }) : null;
+      var collapsed = score !== '' && state.rubricCollapsed[criterionKey] === true;
+
+      Array.prototype.slice.call(article.querySelectorAll('[data-band-score]')).forEach(function(card) {
+        var isSelected = score !== '' && Number(card.getAttribute('data-band-score')) === Number(score);
+        card.classList.toggle('selected', isSelected);
+      });
+
+      var head = article.querySelector('.rubric-card-head');
+      if (head) head.classList.toggle('collapsible', score !== '');
+
+      var stateEl = article.querySelector('.score-state');
+      if (stateEl) {
+        stateEl.textContent = selectedBand ? selectedBand.label : score !== '' ? 'Custom score' : 'No score';
+      }
+
+      var input = article.querySelector('[data-score-input="' + criterionKey + '"]');
+      if (input) input.value = score === '' ? '' : score;
+
+      article.classList.toggle('collapsed', collapsed);
+      var actions = article.querySelector('.rubric-head-actions');
+      if (actions) {
+        var chevronWrap = actions.querySelector('span:last-child');
+        if (score === '') {
+          if (chevronWrap && chevronWrap.querySelector('.ti')) chevronWrap.remove();
+        } else {
+          if (!chevronWrap || !chevronWrap.querySelector('.ti')) {
+            actions.insertAdjacentHTML('beforeend', '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>');
+          } else {
+            var chevron = chevronWrap.querySelector('.ti');
+            chevron.className = 'ti ti-chevron-' + (collapsed ? 'down' : 'up');
+          }
+        }
+      }
+
+      var summaryCard = els.rubricList.querySelector('.summary-card');
+      if (summaryCard) {
+        var total = computeLocalTotal(state.selectedStudent.scores);
+        var totalEl = summaryCard.querySelector('.summary-total');
+        if (totalEl) totalEl.textContent = (total === '' ? '-' : total) + ' / ' + getCurrentTotalMax();
+        var percentEl = summaryCard.querySelector('.subtle');
+        if (percentEl) {
+          var percent = total === '' ? '' : round1(total / getCurrentTotalMax() * 100);
+          percentEl.textContent = percent === '' ? 'No percent yet' : '(' + percent + '%)';
+        }
+        state.rubric.forEach(function(item) {
+          var rowEl = summaryCard.querySelector('[data-summary-criterion="' + item.key + '"]');
+          if (!rowEl) return;
+          var itemScore = scoreOrBlank(state.selectedStudent.scores[item.key]);
+          rowEl.textContent = (itemScore === '' ? '-' : itemScore) + '/' + item.max;
+        });
+        var primeNotice = summaryCard.querySelector('.prime-notice');
+        var percentValue = total === '' ? '' : round1(total / getCurrentTotalMax() * 100);
+        var shouldShowPrime = percentValue !== '' && Number(percentValue) < getPrimeTriggerThreshold();
+        if (primeNotice) {
+          primeNotice.classList.toggle('hidden', !shouldShowPrime);
+        } else if (shouldShowPrime) {
+          var overallCommentInput = summaryCard.querySelector('#overallCommentInput');
+          if (overallCommentInput) {
+            overallCommentInput.insertAdjacentHTML('beforebegin', '<div class="prime-notice">PRIME triggers below ' + getPrimeTriggerThreshold() + '% when the threshold is set to ' + getPrimeDisplayThreshold() + '%.</div>');
+          }
+        }
+      }
     }
 
     function renderPrimePanel(student) {
@@ -1719,14 +1790,10 @@
           var key = button.getAttribute('data-criterion-key');
           var value = Number(button.getAttribute('data-band-score'));
           var current = state.selectedStudent.scores[key];
-          if (current !== '' && Number(current) === value) {
-            state.selectedStudent.scores[key] = '';
-            state.rubricCollapsed[key] = false;
-          } else {
-            state.selectedStudent.scores[key] = value;
-            state.rubricCollapsed[key] = true;
-          }
-          renderRubric(state.selectedStudent);
+          var clearing = current !== '' && Number(current) === value;
+          state.selectedStudent.scores[key] = clearing ? '' : value;
+          state.rubricCollapsed[key] = !clearing;
+          syncRubricCardUi(key);
           scheduleSave();
         });
       });
@@ -1782,7 +1849,7 @@
       state.dirty = true;
       setSaveState('Saving', 'saving');
       clearTimeout(state.saveTimer);
-      state.saveTimer = setTimeout(saveCurrentStudent, 800);
+      state.saveTimer = setTimeout(saveCurrentStudent, 200);
     }
 
     async function saveCurrentStudent() {
