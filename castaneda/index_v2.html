@@ -617,8 +617,9 @@
       position: fixed;
       right: 0;
       top: 0;
-      z-index: 100;
     }
+    .setup-overlay { z-index: 100; }
+    .modal-overlay { z-index: 200; }
     .setup-card, .modal-container {
       background: var(--surface-container-lowest);
       border-radius: var(--radius);
@@ -2329,16 +2330,24 @@
     async function uploadRosterNow() {
       try {
         var response = await apiPost({ action: 'uploadRoster', students: state.rosterRows });
-        if (!response.ok) return showError(response.message || 'Unable to upload roster.');
+        if (!response.ok) {
+          state.setupWizard.rosterUploaded = false;
+          state.setupWizard.rosterError = response.message || 'Unable to upload roster.';
+          els.rosterUploadStatus.textContent = 'Roster upload failed: ' + state.setupWizard.rosterError;
+          renderSetupWizard();
+          showError(state.setupWizard.rosterError);
+          return;
+        }
         state.setupWizard.rosterUploaded = true;
         state.setupWizard.rosterError = '';
         els.rosterUploadStatus.textContent = 'Roster uploaded successfully: ' + response.upserted + ' students added or updated.';
+        renderSetupWizard();
         showToast('Roster uploaded: ' + response.upserted + ' students.');
         loadAppData();
       } catch (err) {
         state.setupWizard.rosterUploaded = false;
         state.setupWizard.rosterError = err.message || String(err);
-        els.rosterUploadStatus.textContent = 'Roster upload failed. Check the confirmation list and try again.';
+        els.rosterUploadStatus.textContent = 'Roster upload failed: ' + state.setupWizard.rosterError;
         renderSetupWizard();
         showError(err.message || String(err));
       }
@@ -2456,11 +2465,15 @@
       els.confirmTitle.textContent = options.title || 'Confirm Action';
       els.confirmBody.innerHTML = options.body || '';
       els.confirmOk.textContent = options.okText || 'Continue';
+      els.confirmModal.style.zIndex = '200';
+      if (state.setupWizard.active) els.setupOverlay.style.zIndex = '100';
       els.confirmModal.classList.remove('hidden');
+      els.confirmOk.focus();
     }
 
     function closeConfirmModal() {
       els.confirmModal.classList.add('hidden');
+      els.confirmModal.style.zIndex = '';
       state.confirmAction = null;
     }
 
