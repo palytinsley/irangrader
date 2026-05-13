@@ -2342,13 +2342,15 @@
         return;
       }
       if (version !== state.changeVersion) return;
+      var preserveCommentDraft = isCommentField(document.activeElement);
       state.selectedStudent = response.student;
-      mergeStudentSummary(response.student);
+      if (preserveCommentDraft) syncLiveStudentDraftFromDom();
+      mergeStudentSummary(state.selectedStudent);
       state.summary = response.summary || state.summary;
       state.dirty = false;
       renderSummary();
       renderStudentNav();
-      if (!(options && options.source === 'comment' && isCommentField(document.activeElement))) {
+      if (!preserveCommentDraft) {
         renderStudentDetails();
       }
       setSaveState('Saved', 'saved');
