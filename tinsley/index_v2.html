@@ -1130,7 +1130,12 @@
       periodFilter: 'All',
       primeMode: false,
       dirty: false,
-      saveTimer: null,
+      changeVersion: 0,
+      pendingSave: false,
+      pendingSaveOptions: null,
+      commentTimers: {},
+      scoreSaveTimers: {},
+      saveIdleResolvers: [],
       primeSaveTimer: null,
       rubricCollapsed: {},
       setupComplete: false,
@@ -1824,6 +1829,9 @@
 
     async function selectStudent(studentId) {
       if (!studentId) return;
+      if (state.selectedStudent && String(studentId) !== String(state.selectedStudentId)) {
+        await flushPendingCommentSaves();
+      }
       clearError();
       setSaveState('Loading', 'saving');
       state.selectedStudentId = studentId;
@@ -2172,7 +2180,8 @@
           state.selectedStudent.scores[key] = clearing ? '' : value;
           state.rubricCollapsed[key] = !clearing;
           syncRubricCardUi(key);
-          scheduleSave();
+          markStudentChanged();
+          scheduleScoreSave(key);
         });
       });
       Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-score-input]')).forEach(function(input) {
@@ -2180,7 +2189,8 @@
           var key = input.getAttribute('data-score-input');
           state.selectedStudent.scores[key] = input.value === '' ? '' : Number(input.value);
           syncRubricCardUi(key);
-          scheduleSave();
+          markStudentChanged();
+          scheduleScoreSave(key);
         });
       });
       Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
@@ -2188,14 +2198,16 @@
           var key = textarea.getAttribute('data-criterion-comment');
           if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
           state.selectedStudent.criterionComments[key] = textarea.value;
-          scheduleCommentSave();
+          markStudentChanged();
+          scheduleCommentSave('criterion:' + key);
         });
       });
       var overallCommentInput = document.getElementById('overallCommentInput');
       if (overallCommentInput) {
         overallCommentInput.addEventListener('input', function() {
           state.selectedStudent.comment = overallCommentInput.value;
-          scheduleCommentSave();
+          markStudentChanged();
+          scheduleCommentSave('overall');
         });
       }
       var flagBtn = document.getElementById('flagBtn');
@@ -2203,13 +2215,17 @@
         flagBtn.addEventListener('click', function() {
           state.selectedStudent.flagged = !state.selectedStudent.flagged;
           renderRubric(state.selectedStudent);
-          scheduleSave();
+          markStudentChanged();
+          scheduleScoreSave('flagged');
         });
       }
       var noSubmissionBtn = document.getElementById('noSubmissionBtn');
       if (noSubmissionBtn) noSubmissionBtn.addEventListener('click', toggleNoSubmission);
       var saveNextBtn = document.getElementById('saveNextBtn');
-      if (saveNextBtn) saveNextBtn.addEventListener('click', async function() { await saveCurrentStudent(); moveStudent(1); });
+      if (saveNextBtn) saveNextBtn.addEventListener('click', async function() {
+        await flushPendingCommentSaves();
+        await moveStudent(1);
+      });
       var exportBtn = document.getElementById('exportCsvBtn');
       if (exportBtn) exportBtn.addEventListener('click', exportCsv);
       var primeStatus = document.getElementById('primeStatusSelect');
@@ -2224,70 +2240,149 @@
       if (printPrimeBtn) printPrimeBtn.addEventListener('click', printPrimeSheet);
     }
 
-    function scheduleSave() {
+    function markStudentChanged() {
+      state.changeVersion += 1;
       state.dirty = true;
       setSaveState('Saving', 'saving');
-      clearTimeout(state.saveTimer);
-      state.saveTimer = setTimeout(saveCurrentStudent, 200);
+      return state.changeVersion;
     }
 
-    function scheduleCommentSave() {
-      state.dirty = true;
-      setSaveState('Saving', 'saving');
-      clearTimeout(state.saveTimer);
-      state.saveTimer = setTimeout(saveCurrentStudent, 1500);
+    function scheduleScoreSave(timerKey) {
+      clearTimeout(state.scoreSaveTimers[timerKey]);
+      state.scoreSaveTimers[timerKey] = setTimeout(function() {
+        delete state.scoreSaveTimers[timerKey];
+        saveCurrentStudent({ source: 'score' });
+      }, 200);
     }
 
-    async function saveCurrentStudent() {
+    function scheduleCommentSave(timerKey) {
+      clearTimeout(state.commentTimers[timerKey]);
+      state.commentTimers[timerKey] = setTimeout(function() {
+        delete state.commentTimers[timerKey];
+        saveCurrentStudent({ source: 'comment' });
+      }, 800);
+    }
+
+    function mergePendingSaveOptions(existing, incoming) {
+      existing = existing || {};
+      incoming = incoming || {};
+      if (existing.source === 'flush' || incoming.source === 'flush') return { source: 'flush' };
+      if (existing.source === 'score' || incoming.source === 'score') return { source: 'score' };
+      return { source: incoming.source || existing.source || 'comment' };
+    }
+
+    function queuePendingStudentSave(options) {
+      state.pendingSave = true;
+      state.pendingSaveOptions = mergePendingSaveOptions(state.pendingSaveOptions, options);
+    }
+
+    function waitForStudentSaveIdle() {
+      if (!state.isSaving && !state.pendingSave) return Promise.resolve();
+      return new Promise(function(resolve) {
+        state.saveIdleResolvers.push(resolve);
+      });
+    }
+
+    function resolveStudentSaveIdle() {
+      var resolvers = state.saveIdleResolvers.slice();
+      state.saveIdleResolvers = [];
+      resolvers.forEach(function(resolve) { resolve(); });
+    }
+
+    function isCommentField(element) {
+      return !!(element && element.tagName === 'TEXTAREA' && (element.id === 'overallCommentInput' || element.hasAttribute('data-criterion-comment')));
+    }
+
+    function syncLiveStudentDraftFromDom() {
       if (!state.selectedStudent) return;
-      if (state.isSaving) {
-        // A save is already in flight — reschedule and wait for it to land
-        clearTimeout(state.saveTimer);
-        state.saveTimer = setTimeout(saveCurrentStudent, 600);
+      var overallCommentInput = document.getElementById('overallCommentInput');
+      if (overallCommentInput) state.selectedStudent.comment = overallCommentInput.value;
+      if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
+      Array.prototype.slice.call(document.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
+        state.selectedStudent.criterionComments[textarea.getAttribute('data-criterion-comment')] = textarea.value;
+      });
+    }
+
+    function studentPayload() {
+      syncLiveStudentDraftFromDom();
+      return {
+        action: 'saveGrade',
+        studentId: state.selectedStudent.studentId,
+        scores: state.selectedStudent.scores,
+        criterionComments: state.selectedStudent.criterionComments || {},
+        comment: state.selectedStudent.comment || '',
+        flagged: !!state.selectedStudent.flagged,
+        vocabFound: state.selectedStudent.vocabFound || [],
+        vocabMissing: state.selectedStudent.vocabMissing || []
+      };
+    }
+
+    async function flushPendingCommentSaves() {
+      var shouldSave = false;
+      Object.keys(state.commentTimers).forEach(function(timerKey) {
+        clearTimeout(state.commentTimers[timerKey]);
+        delete state.commentTimers[timerKey];
+        shouldSave = true;
+      });
+      Object.keys(state.scoreSaveTimers).forEach(function(timerKey) {
+        clearTimeout(state.scoreSaveTimers[timerKey]);
+        delete state.scoreSaveTimers[timerKey];
+        shouldSave = true;
+      });
+      if (shouldSave) {
+        await saveCurrentStudent({ source: 'flush' });
         return;
+      }
+      if (state.isSaving || state.pendingSave) await waitForStudentSaveIdle();
+    }
+
+    function handleSaveResponse(response, version, options) {
+      if (!response.ok) {
+        showError(response.message || 'Unable to save.');
+        return;
+      }
+      if (version !== state.changeVersion) return;
+      state.selectedStudent = response.student;
+      mergeStudentSummary(response.student);
+      state.summary = response.summary || state.summary;
+      state.dirty = false;
+      renderSummary();
+      renderStudentNav();
+      if (!(options && options.source === 'comment' && isCommentField(document.activeElement))) {
+        renderStudentDetails();
+      }
+      setSaveState('Saved', 'saved');
+    }
+
+    function handleSaveFailure(err) {
+      setSaveState('Error', 'error');
+      showError(err.message || String(err));
+    }
+
+    async function saveCurrentStudent(options) {
+      if (!state.selectedStudent) return;
+      options = options || {};
+      if (state.isSaving) {
+        queuePendingStudentSave(options);
+        return waitForStudentSaveIdle();
       }
       state.isSaving = true;
       try {
-        var payload = {
-          action: 'saveGrade',
-          studentId: state.selectedStudent.studentId,
-          scores: state.selectedStudent.scores,
-          criterionComments: state.selectedStudent.criterionComments || {},
-          comment: state.selectedStudent.comment || '',
-          flagged: !!state.selectedStudent.flagged,
-          vocabFound: state.selectedStudent.vocabFound || [],
-          vocabMissing: state.selectedStudent.vocabMissing || []
-        };
-        var response = await apiPost(payload);
-        if (!response.ok) return showError(response.message || 'Unable to save.');
-        var focusedId = document.activeElement ? document.activeElement.id : null;
-        var focusedCriterion = document.activeElement ? document.activeElement.getAttribute('data-criterion-comment') : null;
-        state.selectedStudent = response.student;
-        mergeStudentSummary(response.student);
-        state.summary = response.summary || state.summary;
-        state.dirty = false;
-        renderSummary();
-        renderStudentNav();
-        renderStudentDetails();
-        if (focusedId) {
-          var el = document.getElementById(focusedId);
-          if (el && el.tagName === 'TEXTAREA') {
-            el.focus();
-          }
+        var activeOptions = options;
+        while (true) {
+          var version = state.changeVersion;
+          var response = await apiPost(studentPayload());
+          handleSaveResponse(response, version, activeOptions);
+          if (!state.pendingSave) break;
+          activeOptions = state.pendingSaveOptions || {};
+          state.pendingSave = false;
+          state.pendingSaveOptions = null;
         }
-        if (focusedCriterion) {
-          var el = document.querySelector('[data-criterion-comment="' + focusedCriterion + '"]');
-          if (el && el.tagName === 'TEXTAREA') {
-            el.focus();
-          }
-        }
-        setSaveState('Saved', 'saved');
-        showToast('Saved.');
       } catch (err) {
-        setSaveState('Error', 'error');
-        showError(err.message || String(err));
+        handleSaveFailure(err);
       } finally {
         state.isSaving = false;
+        resolveStudentSaveIdle();
       }
     }
 
@@ -2323,6 +2418,7 @@
 
     async function toggleNoSubmission() {
       if (!state.selectedStudent) return;
+      await flushPendingCommentSaves();
       var next = state.selectedStudent.status !== 'No Submission';
       try {
         var response = await apiPost({
@@ -2343,7 +2439,8 @@
       }
     }
 
-    function togglePrimeMode() {
+    async function togglePrimeMode() {
+      await flushPendingCommentSaves();
       var entering = !state.primeMode;
       if (entering && !state.students.some(function(student) { return student.primeEligible === 'YES'; })) {
         showToast('No students are currently PRIME eligible.');
@@ -2355,13 +2452,14 @@
       renderStudentNav();
       if (state.primeMode) {
         var firstPrime = visibleStudents()[0];
-        if (firstPrime) selectStudent(firstPrime.studentId);
+        if (firstPrime) await selectStudent(firstPrime.studentId);
       } else if (state.selectedStudent) {
         renderStudentDetails();
       }
     }
 
     async function enterAnalyticsMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'analytics';
       updateModeVisibility();
@@ -2375,7 +2473,8 @@
       }
     }
 
-    function enterSchoologyMode() {
+    async function enterSchoologyMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'schoology';
       updateModeVisibility();
@@ -2462,7 +2561,8 @@
       });
     }
 
-    function openMessageCenter() {
+    async function openMessageCenter() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.messageCenter.loading = true;
       state.messageCenter.selectedKeys = new Set();
@@ -2744,7 +2844,8 @@
       }
     }
 
-    function enterRubricEditorMode() {
+    async function enterRubricEditorMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'rubricEditor';
       updateModeVisibility();
@@ -2927,7 +3028,8 @@
         : '<span class="total-ok"><i class="ti ti-circle-check"></i> Total: 20 pts</span>');
     }
 
-    function returnToGradingMode() {
+    async function returnToGradingMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       if (state.mode === 'rubricEditor' && state.rubricDirty) {
         openConfirmModal({
@@ -2964,22 +3066,24 @@
       updateModeVisibility();
     }
 
-    function moveStudent(direction) {
+    async function moveStudent(direction) {
+      await flushPendingCommentSaves();
       var students = visibleStudents();
       var index = students.findIndex(function(student) { return student.studentId === state.selectedStudentId; });
       if (index < 0) return;
       var next = students[index + direction];
-      if (next) selectStudent(next.studentId);
+      if (next) await selectStudent(next.studentId);
     }
 
-    function selectNextUngraded() {
+    async function selectNextUngraded() {
+      await flushPendingCommentSaves();
       var target = visibleStudents().find(function(student) {
         return (student.status === 'Ungraded' || student.status === 'In Progress') && student.hasEssay;
       }) || visibleStudents().find(function(student) {
         return student.status === 'Ungraded' || student.status === 'In Progress';
       });
       if (!target) return showToast('No ungraded students remain in this view.');
-      selectStudent(target.studentId);
+      await selectStudent(target.studentId);
     }
 
     function mergeStudentSummary(student) {
@@ -3010,6 +3114,7 @@
 
     async function printPrimeSheet() {
       if (!state.selectedStudent) return;
+      await flushPendingCommentSaves();
       var win = window.open('', '_blank');
       if (!win) return showToast('Pop-up blocked. Allow pop-ups to print.');
       var html = buildPrimeSheetHtml();
@@ -3256,7 +3361,8 @@
       if (event.key.toLowerCase() === 'f' && state.selectedStudent) {
         state.selectedStudent.flagged = !state.selectedStudent.flagged;
         renderRubric(state.selectedStudent);
-        scheduleSave();
+        markStudentChanged();
+        scheduleScoreSave('flagged');
       }
     }
 
