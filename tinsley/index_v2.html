@@ -2173,14 +2173,14 @@
           var key = textarea.getAttribute('data-criterion-comment');
           if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
           state.selectedStudent.criterionComments[key] = textarea.value;
-          scheduleSave();
+          scheduleCommentSave();
         });
       });
       var overallCommentInput = document.getElementById('overallCommentInput');
       if (overallCommentInput) {
         overallCommentInput.addEventListener('input', function() {
           state.selectedStudent.comment = overallCommentInput.value;
-          scheduleSave();
+          scheduleCommentSave();
         });
       }
       var flagBtn = document.getElementById('flagBtn');
@@ -2216,6 +2216,13 @@
       state.saveTimer = setTimeout(saveCurrentStudent, 200);
     }
 
+    function scheduleCommentSave() {
+      state.dirty = true;
+      setSaveState('Saving', 'saving');
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(saveCurrentStudent, 1500);
+    }
+
     async function saveCurrentStudent() {
       if (!state.selectedStudent) return;
       if (state.isSaving) {
@@ -2238,6 +2245,8 @@
         };
         var response = await apiPost(payload);
         if (!response.ok) return showError(response.message || 'Unable to save.');
+        var focusedId = document.activeElement ? document.activeElement.id : null;
+        var focusedCriterion = document.activeElement ? document.activeElement.getAttribute('data-criterion-comment') : null;
         state.selectedStudent = response.student;
         mergeStudentSummary(response.student);
         state.summary = response.summary || state.summary;
@@ -2245,6 +2254,18 @@
         renderSummary();
         renderStudentNav();
         renderStudentDetails();
+        if (focusedId) {
+          var el = document.getElementById(focusedId);
+          if (el && el.tagName === 'TEXTAREA') {
+            el.focus();
+          }
+        }
+        if (focusedCriterion) {
+          var el = document.querySelector('[data-criterion-comment="' + focusedCriterion + '"]');
+          if (el && el.tagName === 'TEXTAREA') {
+            el.focus();
+          }
+        }
         setSaveState('Saved', 'saved');
         showToast('Saved.');
       } catch (err) {
