@@ -1073,13 +1073,13 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
 function buildStudentFromRow_(row, headerMap, settings, rubric) {
   const actualRubric = rubric || RUBRIC;
   const student = {
-    studentId: stringOrBlank_(getValue_(row, headerMap, 'Student ID')),
-    name: stringOrBlank_(getValue_(row, headerMap, 'Name')),
-    sortName: stringOrBlank_(getValue_(row, headerMap, 'Sort Name')),
-    period: stringOrBlank_(getValue_(row, headerMap, 'Period')),
-    teacher: stringOrBlank_(getValue_(row, headerMap, 'Teacher')),
-    email: stringOrBlank_(getValue_(row, headerMap, 'Email')),
-    essay: stringOrBlank_(getValue_(row, headerMap, 'Essay')),
+    studentId: stringFromCell_(getValue_(row, headerMap, 'Student ID')),
+    name: stringFromCell_(getValue_(row, headerMap, 'Name')),
+    sortName: stringFromCell_(getValue_(row, headerMap, 'Sort Name')),
+    period: stringFromCell_(getValue_(row, headerMap, 'Period')),
+    teacher: stringFromCell_(getValue_(row, headerMap, 'Teacher')),
+    email: stringFromCell_(getValue_(row, headerMap, 'Email')),
+    essay: stringFromCell_(getValue_(row, headerMap, 'Essay')),
     scores: {
       claim: scoreOrBlank_(getValue_(row, headerMap, 'Claim Score')),
       evidence: scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score')),
@@ -1087,30 +1087,30 @@ function buildStudentFromRow_(row, headerMap, settings, rubric) {
       mechanics: scoreOrBlank_(getValue_(row, headerMap, 'Mechanics Score'))
     },
     criterionComments: {
-      claim: stringOrBlank_(getValue_(row, headerMap, 'Claim Comment')),
-      evidence: stringOrBlank_(getValue_(row, headerMap, 'Evidence Comment')),
-      reasoning: stringOrBlank_(getValue_(row, headerMap, 'Reasoning Comment')),
-      mechanics: stringOrBlank_(getValue_(row, headerMap, 'Mechanics Comment'))
+      claim: stringFromCell_(getValue_(row, headerMap, 'Claim Comment')),
+      evidence: stringFromCell_(getValue_(row, headerMap, 'Evidence Comment')),
+      reasoning: stringFromCell_(getValue_(row, headerMap, 'Reasoning Comment')),
+      mechanics: stringFromCell_(getValue_(row, headerMap, 'Mechanics Comment'))
     },
     totalScore: scoreOrBlank_(getValue_(row, headerMap, 'Total Score')),
     percent: scoreOrBlank_(getValue_(row, headerMap, 'Percent')),
-    status: stringOrBlank_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED,
+    status: stringFromCell_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED,
     flagged: stringOrBlank_(getValue_(row, headerMap, 'Flagged')) === 'YES',
-    primeEligible: stringOrBlank_(getValue_(row, headerMap, 'PRIME Eligible')) || 'NO',
-    primeStatus: stringOrBlank_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED,
-    primeComment: stringOrBlank_(getValue_(row, headerMap, 'PRIME Comment')) || stringOrBlank_(settings['PRIME Comment Text']),
-    primeFocusAreas: stringOrBlank_(getValue_(row, headerMap, 'PRIME Focus Areas')),
+    primeEligible: stringFromCell_(getValue_(row, headerMap, 'PRIME Eligible')) || 'NO',
+    primeStatus: stringFromCell_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED,
+    primeComment: stringFromCell_(getValue_(row, headerMap, 'PRIME Comment')) || stringFromCell_(settings['PRIME Comment Text']),
+    primeFocusAreas: stringFromCell_(getValue_(row, headerMap, 'PRIME Focus Areas')),
     primePrintedAt: dateToIso_(getValue_(row, headerMap, 'PRIME Printed At')),
     vocabFound: splitLabels_(getValue_(row, headerMap, 'Vocab Found')),
     vocabMissing: splitLabels_(getValue_(row, headerMap, 'Vocab Missing')),
-    comment: stringOrBlank_(getValue_(row, headerMap, 'Comment')),
+    comment: stringFromCell_(getValue_(row, headerMap, 'Comment')),
     lastSavedAt: dateToIso_(getValue_(row, headerMap, 'Last Saved At')),
-    lastSavedBy: stringOrBlank_(getValue_(row, headerMap, 'Last Saved By')),
+    lastSavedBy: stringFromCell_(getValue_(row, headerMap, 'Last Saved By')),
     rosterLoadedAt: dateToIso_(getValue_(row, headerMap, 'Roster Loaded At')),
     essayLoadedAt: dateToIso_(getValue_(row, headerMap, 'Essay Loaded At')),
-    emailSent: stringOrBlank_(getValue_(row, headerMap, 'Email Sent')) || 'No',
+    emailSent: stringFromCell_(getValue_(row, headerMap, 'Email Sent')) || 'No',
     emailSentAt: dateToIso_(getValue_(row, headerMap, 'Email Sent At')),
-    hasEssay: !!stringOrBlank_(getValue_(row, headerMap, 'Essay')),
+    hasEssay: !!stringFromCell_(getValue_(row, headerMap, 'Essay')),
     rubric: actualRubric
   };
   return student;
@@ -1196,6 +1196,12 @@ function scoreOrBlank_(value) {
 
 function stringOrBlank_(value) {
   if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function stringFromCell_(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (value instanceof Date) return '';
   return String(value).trim();
 }
 
