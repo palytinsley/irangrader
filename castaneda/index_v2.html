@@ -560,9 +560,10 @@
     }
     .performance-card.selected { background: rgba(74,64,224,0.12); box-shadow: inset 0 0 0 2px rgba(74,64,224,0.28); }
     .band-label-col { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
-    .score-row, .comment-chip-row, .prime-field-grid { display: grid; gap: 0.8rem; }
+    .score-row, .prime-field-grid { display: grid; gap: 0.8rem; }
     .score-row { grid-template-columns: 116px minmax(0, 1fr); }
-    .comment-chip-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .text-btn { background: transparent; color: var(--on-surface-variant); font-size: 0.78rem; min-height: 32px; padding: 0.3rem 0.5rem; }
+    .text-btn:hover { background: var(--surface-container-low); }
     .score-field span, .prime-field-grid label span { display: block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.35rem; text-transform: uppercase; }
     .mini-input { min-height: 44px; text-align: center; }
     .summary-total { font-size: 1.8rem; }
@@ -802,7 +803,7 @@
     @media (max-width: 1180px) {
       .content-grid { grid-template-columns: 1fr; height: auto; }
       .resize-handle { display: none; }
-      .comment-chip-row, .setup-grid, .score-row { grid-template-columns: 1fr; }
+      .setup-grid, .score-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 860px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -859,16 +860,6 @@
       tinsley: { name: 'Mr. Tinsley', periods: ['3'] },
       castaneda: { name: 'Mr. Castaneda', periods: ['1', '2'] }
     };
-    var COMMENT_CHIPS = [
-      'Strong use of vocab',
-      'Missing vocab terms',
-      'Needs more specific evidence',
-      'Claims need to be more arguable',
-      'Good analysis of causation',
-      'Summarizing rather than analyzing',
-      'Excellent three-question coverage',
-      'Strong historical detail'
-    ];
     var state = {
       students: [],
       summary: {},
@@ -1038,7 +1029,6 @@
               <h3><i class="ti ti-pencil-check"></i> CER Rubric</h3>
               <p class="section-note">Scores autosave after a short delay. PRIME controls appear in PRIME mode.</p>
             </div>
-            <button class="secondary-btn" id="noSubmissionBtn"><i class="ti ti-file-x"></i> Mark No Submission</button>
           </div>
           <div class="rubric-scroll" id="rubricList"></div>
         </section>
@@ -1277,7 +1267,6 @@
       els.lineSpacingSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-line-height', els.lineSpacingSelect.value); });
       els.highlightToggleBtn.addEventListener('click', toggleHighlightMode);
       els.clearHighlightsBtn.addEventListener('click', clearManualHighlights);
-      els.noSubmissionBtn.addEventListener('click', toggleNoSubmission);
       els.printPrimeTopBtn.addEventListener('click', printPrimeSheet);
       els.rosterFileInput.addEventListener('change', handleRosterFile);
       els.essayFileInput.addEventListener('change', handleEssayFile);
@@ -1552,9 +1541,6 @@
       els.studentTitle.textContent = student.name || 'Student';
       els.studentMeta.textContent = formatStudentMeta(student);
       els.printPrimeTopBtn.classList.toggle('hidden', !state.primeMode || student.primeEligible !== 'YES');
-      els.noSubmissionBtn.innerHTML = student.status === 'No Submission'
-        ? '<i class="ti ti-file-check"></i> Clear No Submission'
-        : '<i class="ti ti-file-x"></i> Mark No Submission';
       els.citationWarning.classList.toggle('hidden', wc >= 80 || !student.essay);
       renderEssay(student);
       renderRubric(student);
@@ -1646,7 +1632,6 @@
               '<div class="subtle">0-' + escapeHtml(String(criterion.max)) + ' points</div>' +
             '</div>' +
             '<div class="rubric-head-actions">' +
-              (selectedBand ? '<span class="selected-band-chip">' + escapeHtml(selectedBand.label) + '</span>' : '') +
               '<span class="score-state">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
               (hasScore ? '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>' : '') +
             '</div>' +
@@ -1665,6 +1650,12 @@
               '<label class="score-field"><span>Manual score</span><input class="mini-input" type="number" min="0" max="' + escapeAttr(criterion.max) + '" step="1" data-score-input="' + escapeAttr(criterion.key) + '" value="' + escapeAttr(score) + '"></label>' +
               '<div></div>' +
             '</div>' +
+            '<label class="score-field">' +
+              '<span>' + escapeHtml(criterion.title) + ' Comment</span>' +
+              '<textarea class="field-textarea criterion-comment" rows="2" data-criterion-comment="' + escapeAttr(criterion.key) + '" placeholder="Targeted feedback for ' + escapeAttr(criterion.title) + '...">' +
+                escapeHtml((student.criterionComments && student.criterionComments[criterion.key]) || '') +
+              '</textarea>' +
+            '</label>' +
           '</div>';
         els.rubricList.appendChild(article);
       });
@@ -1684,14 +1675,9 @@
           '<div class="score-summary-row" style="justify-content:space-between;align-items:flex-end;border-top:1px solid var(--hairline);padding-top:0.6rem;">' +
             '<div><div class="eyebrow">Overall</div><div class="summary-total number-font">' + escapeHtml(String(total === '' ? '-' : total)) + ' / ' + getCurrentTotalMax() + '</div><div class="subtle">' + (percent === '' ? 'No percent yet' : '(' + percent + '%)') + '</div></div>' +
             '<button class="secondary-btn flag-btn ' + (student.flagged ? 'active' : '') + '" id="flagBtn"><i class="ti ti-flag"></i> ' + (student.flagged ? 'Flagged' : 'Flag') + '</button>' +
+            '<button class="text-btn no-sub-btn" id="noSubmissionBtn" title="' + escapeAttr(student.status === 'No Submission' ? 'Clear No Submission' : 'Mark No Submission') + '"><i class="ti ' + (student.status === 'No Submission' ? 'ti-file-check' : 'ti-file-x') + '"></i></button>' +
           '</div>' +
           ((percent !== '' && Number(percent) < getPrimeTriggerThreshold()) ? '<div class="prime-notice">PRIME triggers below ' + getPrimeTriggerThreshold() + '% when the threshold is set to ' + getPrimeDisplayThreshold() + '%.</div>' : '') +
-          '<div>' +
-            '<div class="eyebrow" style="margin-bottom:0.55rem;">Comment Chips</div>' +
-            '<div class="comment-chip-row">' +
-              COMMENT_CHIPS.map(function(label) { return '<button type="button" class="comment-chip" data-comment-chip="' + escapeAttr(label) + '">' + escapeHtml(label) + '</button>'; }).join('') +
-            '</div>' +
-          '</div>' +
           '<label class="score-field"><span>Overall Comment</span><textarea class="field-textarea" id="overallCommentInput" placeholder="Teacher feedback...">' + escapeHtml(student.comment || '') + '</textarea></label>' +
           '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;">' +
             '<button class="primary-btn" id="saveNextBtn"><i class="ti ti-arrow-right"></i> Save & Next</button>' +
@@ -1749,6 +1735,14 @@
           scheduleSave();
         });
       });
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
+        textarea.addEventListener('input', function() {
+          var key = textarea.getAttribute('data-criterion-comment');
+          if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
+          state.selectedStudent.criterionComments[key] = textarea.value;
+          scheduleSave();
+        });
+      });
       var overallCommentInput = document.getElementById('overallCommentInput');
       if (overallCommentInput) {
         overallCommentInput.addEventListener('input', function() {
@@ -1756,15 +1750,6 @@
           scheduleSave();
         });
       }
-      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-comment-chip]')).forEach(function(button) {
-        button.addEventListener('click', function() {
-          var text = button.getAttribute('data-comment-chip');
-          var current = state.selectedStudent.comment || '';
-          state.selectedStudent.comment = current ? current + '\n' + text : text;
-          renderRubric(state.selectedStudent);
-          scheduleSave();
-        });
-      });
       var flagBtn = document.getElementById('flagBtn');
       if (flagBtn) {
         flagBtn.addEventListener('click', function() {
@@ -1773,6 +1758,8 @@
           scheduleSave();
         });
       }
+      var noSubmissionBtn = document.getElementById('noSubmissionBtn');
+      if (noSubmissionBtn) noSubmissionBtn.addEventListener('click', toggleNoSubmission);
       var saveNextBtn = document.getElementById('saveNextBtn');
       if (saveNextBtn) saveNextBtn.addEventListener('click', async function() { await saveCurrentStudent(); moveStudent(1); });
       var exportBtn = document.getElementById('exportCsvBtn');
@@ -1810,6 +1797,7 @@
           action: 'saveGrade',
           studentId: state.selectedStudent.studentId,
           scores: state.selectedStudent.scores,
+          criterionComments: state.selectedStudent.criterionComments || {},
           comment: state.selectedStudent.comment || '',
           flagged: !!state.selectedStudent.flagged,
           vocabFound: state.selectedStudent.vocabFound || [],

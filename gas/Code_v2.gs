@@ -35,6 +35,7 @@ const CONFIG = {
     'Total Score', 'Percent', 'Status', 'Flagged',
     'PRIME Eligible', 'PRIME Status', 'PRIME Comment', 'PRIME Focus Areas', 'PRIME Printed At',
     'Vocab Found', 'Vocab Missing',
+    'Claim Comment', 'Evidence Comment', 'Reasoning Comment', 'Mechanics Comment',
     'Comment', 'Last Saved At', 'Last Saved By', 'Roster Loaded At', 'Essay Loaded At',
     'Last Viewed At'
   ],
@@ -387,6 +388,11 @@ function saveGrade_(payload) {
       setRowValue_(row, ctx.headerMap, 'Evidence Score',  scoreOrBlank_(scores.evidence));
       setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
       setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
+      var criterionComments = payload.criterionComments || {};
+      setRowValue_(row, ctx.headerMap, 'Claim Comment',     stringOrBlank_(criterionComments.claim));
+      setRowValue_(row, ctx.headerMap, 'Evidence Comment',  stringOrBlank_(criterionComments.evidence));
+      setRowValue_(row, ctx.headerMap, 'Reasoning Comment', stringOrBlank_(criterionComments.reasoning));
+      setRowValue_(row, ctx.headerMap, 'Mechanics Comment', stringOrBlank_(criterionComments.mechanics));
       setRowValue_(row, ctx.headerMap, 'Comment',         stringOrBlank_(payload.comment));
       setRowValue_(row, ctx.headerMap, 'Flagged',         truthy_(payload.flagged) ? 'YES' : 'NO');
       setRowValue_(row, ctx.headerMap, 'Vocab Found',     joinLabels_(payload.vocabFound));
@@ -767,6 +773,12 @@ function buildStudentFromRow_(row, headerMap, settings, rubric) {
       evidence: scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score')),
       reasoning: scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score')),
       mechanics: scoreOrBlank_(getValue_(row, headerMap, 'Mechanics Score'))
+    },
+    criterionComments: {
+      claim: stringOrBlank_(getValue_(row, headerMap, 'Claim Comment')),
+      evidence: stringOrBlank_(getValue_(row, headerMap, 'Evidence Comment')),
+      reasoning: stringOrBlank_(getValue_(row, headerMap, 'Reasoning Comment')),
+      mechanics: stringOrBlank_(getValue_(row, headerMap, 'Mechanics Comment'))
     },
     totalScore: scoreOrBlank_(getValue_(row, headerMap, 'Total Score')),
     percent: scoreOrBlank_(getValue_(row, headerMap, 'Percent')),
