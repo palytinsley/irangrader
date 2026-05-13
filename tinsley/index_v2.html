@@ -543,9 +543,10 @@
     }
     .rubric-card-head.collapsible { cursor: pointer; }
     .rubric-title { display: inline-flex; gap: 0.55rem; align-items: center; font-size: 1.03rem; }
-    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
     .selected-band-chip { background: rgba(74,64,224,0.12); color: var(--primary); }
     .score-state { background: var(--surface-container-low); color: var(--on-surface-variant); }
+    .score-points { font-variant-numeric: tabular-nums; padding-inline: 0.52rem; }
     .rubric-performance-grid { display: grid; gap: 0.75rem; }
     .performance-card {
       align-items: flex-start;
@@ -1996,7 +1997,8 @@
               '<div class="subtle">0-' + escapeHtml(String(criterion.max)) + ' points</div>' +
             '</div>' +
             '<div class="rubric-head-actions">' +
-              '<span class="score-state">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
+              '<span class="' + (selectedBand ? 'selected-band-chip score-state' : 'score-state') + '">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
+              '<span class="score-state score-points"' + (hasScore ? '' : ' hidden') + '>' + (hasScore ? escapeHtml(String(score)) + '/' + escapeHtml(String(criterion.max)) + ' pts' : '') + '</span>' +
               (hasScore ? '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>' : '') +
             '</div>' +
           '</div>' +
@@ -2070,6 +2072,18 @@
       var stateEl = article.querySelector('.score-state');
       if (stateEl) {
         stateEl.textContent = selectedBand ? selectedBand.label : score !== '' ? 'Custom score' : 'No score';
+        stateEl.classList.toggle('selected-band-chip', !!selectedBand);
+      }
+
+      var pointsEl = article.querySelector('.score-points');
+      if (pointsEl) {
+        if (score === '') {
+          pointsEl.textContent = '';
+          pointsEl.hidden = true;
+        } else {
+          pointsEl.textContent = score + '/' + criterion.max + ' pts';
+          pointsEl.hidden = false;
+        }
       }
 
       var input = article.querySelector('[data-score-input="' + criterionKey + '"]');
@@ -2165,6 +2179,7 @@
         input.addEventListener('change', function() {
           var key = input.getAttribute('data-score-input');
           state.selectedStudent.scores[key] = input.value === '' ? '' : Number(input.value);
+          syncRubricCardUi(key);
           scheduleSave();
         });
       });
