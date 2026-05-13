@@ -1133,7 +1133,6 @@
       changeVersion: 0,
       pendingSave: false,
       pendingSaveOptions: null,
-      commentTimers: {},
       scoreSaveTimers: {},
       saveIdleResolvers: [],
       primeSaveTimer: null,
@@ -1302,7 +1301,7 @@
             <div>
               <p class="eyebrow" id="rubricEyebrow">20 Point Rubric</p>
               <h3><i class="ti ti-pencil-check"></i> CER Rubric</h3>
-              <p class="section-note">Scores autosave after a short delay. PRIME controls appear in PRIME mode.</p>
+              <p class="section-note">Scores autosave after a short delay. Comments save on blur or navigation. PRIME controls appear in PRIME mode.</p>
             </div>
           </div>
           <div class="rubric-scroll" id="rubricList"></div>
@@ -2199,7 +2198,9 @@
           if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
           state.selectedStudent.criterionComments[key] = textarea.value;
           markStudentChanged();
-          scheduleCommentSave('criterion:' + key);
+        });
+        textarea.addEventListener('blur', function() {
+          saveCurrentStudent({ source: 'comment-blur' });
         });
       });
       var overallCommentInput = document.getElementById('overallCommentInput');
@@ -2207,7 +2208,9 @@
         overallCommentInput.addEventListener('input', function() {
           state.selectedStudent.comment = overallCommentInput.value;
           markStudentChanged();
-          scheduleCommentSave('overall');
+        });
+        overallCommentInput.addEventListener('blur', function() {
+          saveCurrentStudent({ source: 'comment-blur' });
         });
       }
       var flagBtn = document.getElementById('flagBtn');
@@ -2253,14 +2256,6 @@
         delete state.scoreSaveTimers[timerKey];
         saveCurrentStudent({ source: 'score' });
       }, 200);
-    }
-
-    function scheduleCommentSave(timerKey) {
-      clearTimeout(state.commentTimers[timerKey]);
-      state.commentTimers[timerKey] = setTimeout(function() {
-        delete state.commentTimers[timerKey];
-        saveCurrentStudent({ source: 'comment' });
-      }, 800);
     }
 
     function mergePendingSaveOptions(existing, incoming) {
@@ -2318,12 +2313,7 @@
     }
 
     async function flushPendingCommentSaves() {
-      var shouldSave = false;
-      Object.keys(state.commentTimers).forEach(function(timerKey) {
-        clearTimeout(state.commentTimers[timerKey]);
-        delete state.commentTimers[timerKey];
-        shouldSave = true;
-      });
+      var shouldSave = !!state.dirty;
       Object.keys(state.scoreSaveTimers).forEach(function(timerKey) {
         clearTimeout(state.scoreSaveTimers[timerKey]);
         delete state.scoreSaveTimers[timerKey];
@@ -2364,6 +2354,7 @@
     async function saveCurrentStudent(options) {
       if (!state.selectedStudent) return;
       options = options || {};
+      if (!state.dirty && !state.isSaving && !state.pendingSave) return;
       if (state.isSaving) {
         queuePendingStudentSave(options);
         return waitForStudentSaveIdle();
