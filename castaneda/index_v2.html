@@ -1710,7 +1710,7 @@
       Array.prototype.slice.call(els.rubricList.querySelectorAll('.rubric-card-head.collapsible')).forEach(function(head) {
         head.addEventListener('click', function() {
           var key = head.parentNode.getAttribute('data-criterion');
-          state.rubricCollapsed[key] = !(state.rubricCollapsed[key] === false);
+          state.rubricCollapsed[key] = !state.rubricCollapsed[key];
           renderRubric(state.selectedStudent);
         });
       });
@@ -1719,7 +1719,7 @@
           var key = button.getAttribute('data-criterion-key');
           var value = Number(button.getAttribute('data-band-score'));
           state.selectedStudent.scores[key] = value;
-          state.rubricCollapsed[key] = false;
+          state.rubricCollapsed[key] = true;
           renderRubric(state.selectedStudent);
           scheduleSave();
         });
