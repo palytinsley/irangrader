@@ -1718,8 +1718,14 @@
         button.addEventListener('click', function() {
           var key = button.getAttribute('data-criterion-key');
           var value = Number(button.getAttribute('data-band-score'));
-          state.selectedStudent.scores[key] = value;
-          state.rubricCollapsed[key] = true;
+          var current = state.selectedStudent.scores[key];
+          if (current !== '' && Number(current) === value) {
+            state.selectedStudent.scores[key] = '';
+            state.rubricCollapsed[key] = false;
+          } else {
+            state.selectedStudent.scores[key] = value;
+            state.rubricCollapsed[key] = true;
+          }
           renderRubric(state.selectedStudent);
           scheduleSave();
         });
