@@ -1006,21 +1006,27 @@ function setRowValue_(row, headerMap, header, value) {
 }
 
 function writeSheetRow_(sheet, rowNumber, row) {
-  sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
+  const width = Math.max(row.length, CONFIG.STUDENT_HEADERS.length);
+  const padded = row.slice();
+  while (padded.length < width) padded.push('');
+  sheet.getRange(rowNumber, 1, 1, width).setValues([padded]);
 }
 
 function writeRowsBatch_(sheet, rows, width) {
   if (!rows || !rows.length) return;
+  var effectiveWidth = Math.max(width || 0, CONFIG.STUDENT_HEADERS.length);
   // Write each row to its actual position rather than clearing the range.
   // New rows (rowNumber beyond current last row) are appended via appendRow
   // so they don't collide with existing data from other teachers.
   var lastExisting = sheet.getLastRow();
   rows.forEach(function(row, index) {
     var rowNumber = index + 2; // data starts at row 2
+    var padded = row.slice();
+    while (padded.length < effectiveWidth) padded.push('');
     if (rowNumber <= lastExisting) {
-      sheet.getRange(rowNumber, 1, 1, width).setValues([row]);
+      sheet.getRange(rowNumber, 1, 1, effectiveWidth).setValues([padded]);
     } else {
-      sheet.appendRow(row);
+      sheet.appendRow(padded);
     }
   });
 }
