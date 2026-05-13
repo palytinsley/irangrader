@@ -545,8 +545,14 @@ function getSpreadsheet_() {
   return SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
 }
 
+function getWriteLock_() {
+  const lock = LockService.getScriptLock();
+  if (!lock) throw new Error('Unable to acquire GAS lock.');
+  return lock;
+}
+
 function withDocumentWriteLock_(callback) {
-  const lock = LockService.getDocumentLock();
+  const lock = getWriteLock_();
   lock.waitLock(5000);
   try {
     return callback();
