@@ -443,7 +443,8 @@
       min-height: 0;
       overflow: hidden;
     }
-    .essay-pane, .rubric-pane { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); }
+    .essay-pane { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
+    .rubric-pane { display: grid; grid-template-rows: auto minmax(0, 1fr); }
     .section-heading {
       align-items: flex-start;
       background: var(--surface-container-lowest);
@@ -501,15 +502,18 @@
     }
     .wb-highlight { background: #c8f0d8; color: #0b5a34; border-radius: 4px; font-weight: 700; padding: 0 2px; }
     .essay-highlight { background: #fff176; border-radius: 4px; padding: 0 2px; }
-    .rubric-scroll { min-height: 0; overflow: auto; padding: 1rem; }
+    .rubric-scroll { min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 1rem; display: flex; flex-direction: column; gap: 0; }
     .rubric-card, .prime-panel, .summary-card, .analytics-card, .schoology-card, .rubric-editor-card {
       background: var(--surface-container-lowest);
       border-radius: var(--radius);
       box-shadow: var(--ambient-tight), inset 0 0 0 1px var(--hairline);
       display: grid;
+      flex-shrink: 0;
       gap: 1rem;
       margin-bottom: 1rem;
       padding: 1.1rem 1.2rem;
+      position: relative;
+      z-index: 0;
     }
     .rubric-card.collapsed .rubric-card-body { display: none; }
     .rubric-card-head {
@@ -979,20 +983,6 @@
 
       <section class="content-grid hidden" id="gradingContent">
         <section class="panel essay-pane">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Student Response</p>
-              <h3><i class="ti ti-file-text"></i> Essay Review</h3>
-              <p class="section-note">Single-question Schoology export, reformatted for faster grading.</p>
-            </div>
-          </div>
-          <div class="essay-student-bar">
-            <div>
-              <strong id="essayStudentName">No student selected</strong>
-              <div class="subtle" id="essayStudentMeta">Word count and submission status appear here.</div>
-            </div>
-            <span class="warn-chip hidden" id="essayWordWarn"><i class="ti ti-alert-triangle"></i> Under 80 words</span>
-          </div>
           <div class="word-bank-bar">
             <div class="number-font" id="vocabSummary"><i class="ti ti-vocabulary"></i> Vocab: 0/6 terms</div>
             <div class="word-bank-right" id="wordBankPills"></div>
@@ -1220,8 +1210,8 @@
         'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn',
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
-        'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'essayStudentName', 'essayStudentMeta',
-        'essayWordWarn', 'vocabSummary', 'wordBankPills', 'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
+        'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
+        'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
         'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
         'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
@@ -1524,9 +1514,6 @@
       els.noSubmissionBtn.innerHTML = student.status === 'No Submission'
         ? '<i class="ti ti-file-check"></i> Clear No Submission'
         : '<i class="ti ti-file-x"></i> Mark No Submission';
-      els.essayStudentName.textContent = student.name || 'Student';
-      els.essayStudentMeta.textContent = '~' + wc + ' words • ' + (student.status || 'Ungraded');
-      els.essayWordWarn.classList.toggle('hidden', wc >= 80 || !student.essay);
       els.citationWarning.classList.toggle('hidden', wc >= 80 || !student.essay);
       renderEssay(student);
       renderRubric(student);
@@ -1607,7 +1594,7 @@
         var score = scoreOrBlank(student.scores[criterion.key]);
         var selectedBand = (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); });
         var hasScore = score !== '';
-        var collapsed = hasScore && state.rubricCollapsed[criterion.key] !== false;
+        var collapsed = hasScore && state.rubricCollapsed[criterion.key] === true;
         var article = document.createElement('article');
         article.className = 'rubric-card' + (collapsed ? ' collapsed' : '');
         article.setAttribute('data-criterion', criterion.key);
