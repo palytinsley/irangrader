@@ -1,0 +1,2829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iran Summative Grader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --primary: #4a40e0;
+      --primary-dim: #3d30d4;
+      --primary-soft: #9795ff;
+      --secondary: #00628c;
+      --secondary-soft: #a4d8ff;
+      --tertiary: #006947;
+      --tertiary-container: #69f6b8;
+      --on-tertiary-container: #005a3c;
+      --error: #b41340;
+      --error-container: #f74b6d;
+      --on-error-container: #510017;
+      --surface: #f4f6ff;
+      --surface-container-lowest: #ffffff;
+      --surface-container-low: #eaf1ff;
+      --surface-container: #dce9ff;
+      --surface-container-high: #d2e4ff;
+      --surface-container-highest: #c9deff;
+      --on-surface: #203044;
+      --on-surface-variant: #4d5d73;
+      --outline-variant: #9eaec7;
+      --sidebar-ink: #07152b;
+      --sidebar-muted: #5d6d84;
+      --glass: rgba(244, 246, 255, 0.72);
+      --ambient: 0 22px 40px rgba(32, 48, 68, 0.06);
+      --ambient-tight: 0 10px 28px rgba(32, 48, 68, 0.05);
+      --surface-page-start: #f8faff;
+      --surface-glow: rgba(151, 149, 255, 0.18);
+      --sidebar-surface: rgba(234, 241, 255, 0.72);
+      --on-primary: #f4f1ff;
+      --selection-ink: #14007e;
+      --focus-ring: rgba(74, 64, 224, 0.22);
+      --hairline: rgba(158, 174, 199, 0.08);
+      --hairline-strong: rgba(158, 174, 199, 0.24);
+      --hairline-menu: rgba(158, 174, 199, 0.12);
+      --accent-soft-bg: rgba(151, 149, 255, 0.12);
+      --tertiary-soft-bg: rgba(105, 246, 184, 0.46);
+      --tertiary-link-bg: rgba(105, 246, 184, 0.28);
+      --tertiary-link-bg-hover: rgba(105, 246, 184, 0.5);
+      --card-hover: #fbfdff;
+      --primary-shadow: rgba(74, 64, 224, 0.18);
+      --primary-shadow-soft: rgba(74, 64, 224, 0.10);
+      --primary-shadow-strong: rgba(74, 64, 224, 0.24);
+      --primary-border-soft: rgba(74, 64, 224, 0.28);
+      --primary-border-strong: rgba(74, 64, 224, 0.58);
+      --tertiary-border-soft: rgba(0, 105, 71, 0.18);
+      --neutral-pill-bg: rgba(0, 0, 0, 0.06);
+      --error-soft-bg: rgba(247, 75, 109, 0.22);
+      --warning-soft-bg: rgba(245, 158, 11, 0.1);
+      --scrim: rgba(7, 21, 43, 0.54);
+      --toast-bg: rgba(7, 21, 43, 0.92);
+      --modal-shadow: 0 32px 64px rgba(32, 48, 68, 0.18);
+      --preview-bg: #f4f6ff;
+      --rubric-width: 380px;
+      --essay-font-size: 17px;
+      --essay-line-height: 1.7;
+      --radius: 24px;
+      --radius-md: 16px;
+      --radius-sm: 4px;
+      --speed: 200ms;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--surface); }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 78% 0%, var(--surface-glow), transparent 30rem),
+        linear-gradient(180deg, var(--surface-page-start) 0%, var(--surface) 34rem);
+      color: var(--on-surface);
+      font-family: "Open Sans", Arial, sans-serif;
+    }
+    body.reader-beige {
+      --surface: #f3ebdb;
+      --surface-page-start: #f7f1e5;
+      --surface-container-lowest: #fff8eb;
+      --surface-container-low: #efe4cf;
+      --surface-container: #e7dbc5;
+    }
+    body.reader-dark {
+      --surface: #122033;
+      --surface-page-start: #17283e;
+      --surface-container-lowest: #1f3048;
+      --surface-container-low: #22354f;
+      --surface-container: #2a3f5c;
+      --surface-container-high: #304869;
+      --surface-container-highest: #375175;
+      --on-surface: #edf4ff;
+      --on-surface-variant: #b1c2db;
+      --sidebar-ink: #edf4ff;
+      --sidebar-muted: #b1c2db;
+      --sidebar-surface: rgba(25, 39, 60, 0.82);
+      --glass: rgba(22, 36, 56, 0.8);
+      --hairline: rgba(255,255,255,0.05);
+      --hairline-menu: rgba(255,255,255,0.08);
+      --preview-bg: #18273a;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled, input:disabled, select:disabled, textarea:disabled { cursor: not-allowed; opacity: 0.6; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+    .ti { display: inline-block; flex: 0 0 auto; line-height: 1; }
+    .hidden { display: none !important; }
+    .eyebrow {
+      color: var(--primary);
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .subtle, .section-note {
+      color: var(--on-surface-variant);
+      line-height: 1.5;
+      margin: 0.45rem 0 0;
+    }
+    .brand-block h1, .topbar h2, .section-heading h3, .student-name, .rubric-title, .number-font, .empty-state h2 {
+      font-family: "Arvo", Georgia, serif;
+      margin: 0;
+    }
+    .app-shell {
+      display: grid;
+      grid-template-columns: 324px minmax(0, 1fr);
+      min-height: 100vh;
+      transition: grid-template-columns var(--speed) ease-out;
+    }
+    body.sidebar-collapsed .app-shell { grid-template-columns: 0 minmax(0, 1fr); }
+    body.sidebar-collapsed .sidebar { padding-left: 0; padding-right: 0; transform: translateX(-100%); }
+    .sidebar {
+      background: var(--sidebar-surface);
+      backdrop-filter: blur(20px);
+      color: var(--sidebar-ink);
+      height: 100vh;
+      overflow-y: auto;
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 0;
+      transition: transform var(--speed) ease-out, padding var(--speed) ease-out;
+      width: 324px;
+    }
+    .brand-block { margin-bottom: 1.5rem; padding: 0.25rem 0.25rem 0.75rem; }
+    .brand-block h1 { font-size: 1.55rem; line-height: 1.1; margin-top: 0.3rem; }
+    .filter-row {
+      display: grid;
+      gap: 0.65rem;
+      grid-template-columns: repeat(3, 1fr);
+      margin: 0 0 1.5rem;
+    }
+    .filter-btn, .secondary-btn, .primary-btn, .text-btn, .link-btn, .icon-btn {
+      align-items: center;
+      border: 0;
+      display: inline-flex;
+      gap: 0.45rem;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0.65rem 1rem;
+      text-decoration: none;
+      transition: background var(--speed) ease-out, box-shadow var(--speed) ease-out, color var(--speed) ease-out, transform var(--speed) ease-out;
+      white-space: nowrap;
+    }
+    .filter-btn {
+      background: transparent;
+      border-radius: 999px;
+      color: var(--sidebar-muted);
+    }
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+      box-shadow: 0 16px 30px var(--primary-shadow);
+      color: var(--on-primary);
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+      border-radius: 999px;
+      box-shadow: 0 18px 34px var(--primary-shadow);
+      color: var(--on-primary);
+    }
+    .secondary-btn, .text-btn, .icon-btn {
+      background: var(--surface-container-high);
+      border-radius: 999px;
+      color: var(--primary);
+    }
+    .icon-btn { height: 44px; padding: 0; width: 44px; }
+    .secondary-btn.active { background: var(--warning-soft-bg); color: var(--error); }
+    .link-btn {
+      background: var(--tertiary-link-bg);
+      border-radius: 999px;
+      color: var(--tertiary);
+      font-size: 0.82rem;
+    }
+    .progress-card {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius);
+      box-shadow: var(--ambient-tight), inset 0 0 0 1px var(--hairline);
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: auto minmax(0, 1fr);
+      margin: 0 0 1.5rem;
+      padding: 1rem;
+    }
+    .progress-ring { display: grid; height: 76px; place-items: center; position: relative; width: 76px; }
+    .progress-ring svg { height: 76px; transform: rotate(-90deg); width: 76px; }
+    .progress-ring-track, .progress-ring-value { fill: none; stroke-linecap: round; stroke-width: 8; }
+    .progress-ring-track { stroke: var(--surface-container-low); }
+    .progress-ring-value { stroke: var(--tertiary); transition: stroke-dashoffset var(--speed) ease-out; }
+    .progress-ring span { font-weight: 800; position: absolute; }
+    .progress-copy strong { display: block; font-size: 1.45rem; }
+    .jump-label {
+      color: var(--sidebar-muted);
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin: 0 0 0.55rem 0.25rem;
+      text-transform: uppercase;
+    }
+    .student-jump, .field-input, .field-select, .field-textarea, .mini-input {
+      appearance: none;
+      background: var(--surface-container-lowest);
+      border: 0;
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px var(--hairline-menu);
+      color: var(--on-surface);
+      min-height: 46px;
+      padding: 0.75rem 1rem;
+      width: 100%;
+    }
+    .field-textarea { min-height: 96px; resize: vertical; }
+    .group-list { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+    .group-item {
+      background: var(--surface-container-lowest);
+      border: 0;
+      border-radius: var(--radius-md);
+      color: var(--on-surface);
+      padding: 1rem;
+      text-align: left;
+      width: 100%;
+    }
+    .group-item.active { background: var(--surface-container-high); box-shadow: inset 4px 0 0 var(--primary), var(--ambient-tight); transform: translateX(4px); }
+    .group-item.prime-eligible { box-shadow: inset 4px 0 0 #820026, var(--ambient-tight); }
+    .student-name-row, .group-meta, .topbar-identity, .topbar-actions, .score-summary-row, .rubric-editor-card-head, .rubric-totals-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .student-name-row, .group-meta { justify-content: space-between; }
+    .student-card-badges { display: flex; flex-wrap: wrap; gap: 0.38rem; }
+    .period-badge, .status-badge, .prime-badge, .vocab-count-pill, .rubric-editor-key-badge, .selected-band-chip, .score-state, .comment-chip, .warn-chip {
+      align-items: center;
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 0.72rem;
+      font-weight: 800;
+      gap: 0.3rem;
+      padding: 0.28rem 0.62rem;
+    }
+    .period-badge, .rubric-editor-key-badge { background: var(--neutral-pill-bg); color: var(--on-surface-variant); }
+    .status-badge[data-status="Complete"] { background: rgba(0,105,71,0.12); color: var(--tertiary); }
+    .status-badge[data-status="In Progress"] { background: rgba(74,64,224,0.12); color: var(--primary); }
+    .status-badge[data-status="No Submission"] { background: rgba(180,19,64,0.12); color: var(--error); }
+    .status-badge[data-status="Ungraded"] { background: var(--surface-container); color: var(--on-surface-variant); }
+    .prime-badge { background: rgba(130,0,38,0.12); color: #820026; }
+    .vocab-count-pill.good { background: rgba(0,105,71,0.12); color: var(--tertiary); }
+    .vocab-count-pill.warn { background: rgba(245,158,11,0.14); color: #996300; }
+    .workspace { min-width: 0; padding: 2rem; }
+    .topbar {
+      align-items: center;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: var(--ambient-tight);
+      display: flex;
+      gap: 1.5rem;
+      justify-content: space-between;
+      margin: -2rem -2rem 1.5rem;
+      padding: 1.35rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .topbar-identity { align-items: center; display: flex; gap: 1rem; min-width: 240px; }
+    .topbar-identity-copy { min-width: 0; }
+    .topbar h2 { font-size: clamp(1.4rem, 3vw, 2.35rem); line-height: 1.08; }
+    .topbar-actions { flex-wrap: wrap; justify-content: flex-end; }
+    .topbar-mini-progress {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border: 0;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px var(--hairline-menu);
+      color: var(--on-surface);
+      display: inline-flex;
+      gap: 0.75rem;
+      min-height: 48px;
+      padding: 0.45rem 0.8rem 0.45rem 0.5rem;
+    }
+    .topbar-mini-progress[aria-hidden="true"] { display: none; }
+    .mini-progress-ring {
+      display: grid;
+      height: 40px;
+      place-items: center;
+      position: relative;
+      width: 40px;
+    }
+    .mini-progress-ring svg { height: 40px; transform: rotate(-90deg); width: 40px; }
+    .mini-progress-ring .progress-ring-track,
+    .mini-progress-ring .progress-ring-value { stroke-width: 7; }
+    .mini-progress-ring span { font-size: 0.72rem; font-weight: 800; position: absolute; }
+    .mini-progress-copy { display: grid; gap: 0.08rem; text-align: left; }
+    .mini-progress-copy strong { font-size: 0.9rem; }
+    .save-pill {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px var(--hairline-menu);
+      color: var(--tertiary);
+      display: inline-flex;
+      font-size: 0.82rem;
+      font-weight: 800;
+      gap: 0.42rem;
+      min-height: 42px;
+      min-width: 6.5rem;
+      padding: 0.6rem 0.9rem;
+    }
+    .save-pill.saving { color: var(--primary); }
+    .save-pill.error, .rubric-save-pill-unsaved { color: var(--warn) !important; box-shadow: inset 0 0 0 1px rgba(245,158,11,0.35) !important; }
+    .settings-menu-wrap { position: relative; }
+    .settings-menu {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-md);
+      box-shadow: var(--ambient), inset 0 0 0 1px var(--hairline-menu);
+      display: grid;
+      gap: 0.25rem;
+      min-width: 230px;
+      padding: 0.45rem;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 0.55rem);
+      z-index: 10;
+    }
+    .settings-menu a, .settings-menu button {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: var(--on-surface);
+      display: flex;
+      gap: 0.55rem;
+      font-size: 0.86rem;
+      font-weight: 800;
+      padding: 0.75rem 0.85rem;
+      text-align: left;
+      text-decoration: none;
+      width: 100%;
+    }
+    .settings-menu .disabled-link {
+      color: var(--on-surface-variant);
+      pointer-events: none;
+    }
+    .settings-menu-group {
+      border-top: 1px solid var(--hairline);
+      display: grid;
+      gap: 0.55rem;
+      margin-top: 0.25rem;
+      padding: 0.75rem 0.6rem 0.45rem;
+    }
+    .settings-menu-group:first-child {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0.2rem;
+    }
+    .settings-menu-label {
+      color: var(--on-surface-variant);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .settings-menu-note {
+      color: var(--on-surface-variant);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      margin: 0;
+    }
+    .settings-inline-row {
+      align-items: center;
+      display: grid;
+      gap: 0.55rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .settings-inline-row .field-input {
+      min-height: 40px;
+      padding: 0.6rem 0.8rem;
+    }
+    .notice { border-radius: var(--radius-md); margin-bottom: 1.5rem; padding: 1rem 1.15rem; }
+    .notice.error { background: var(--error-soft-bg); color: var(--on-error-container); }
+    .content-grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: minmax(0, 1fr) 16px var(--rubric-width);
+      height: calc(100vh - 132px);
+      min-height: 620px;
+    }
+    .resize-handle {
+      align-self: stretch;
+      cursor: col-resize;
+      position: relative;
+      width: 16px;
+    }
+    .resize-handle::before {
+      background: var(--outline-variant);
+      border-radius: 999px;
+      content: '';
+      height: 100%;
+      left: 50%;
+      position: absolute;
+      transform: translateX(-50%);
+      width: 3px;
+    }
+    .panel {
+      background: var(--surface-container-low);
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .essay-pane, .rubric-pane { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); }
+    .section-heading {
+      align-items: flex-start;
+      background: var(--surface-container-lowest);
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      padding: 1.2rem 1.35rem;
+    }
+    .section-heading h3 { font-size: 1.15rem; line-height: 1.15; }
+    .essay-student-bar, .word-bank-bar, .essay-toolbar {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border-top: 1px solid var(--hairline);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+      padding: 0.9rem 1.25rem;
+    }
+    .word-bank-bar {
+      background: var(--tertiary-soft-bg);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .word-bank-right { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .wb-pill {
+      align-items: center;
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 0.76rem;
+      font-weight: 800;
+      gap: 0.34rem;
+      padding: 0.35rem 0.65rem;
+    }
+    .wb-pill.found { background: rgba(0,105,71,0.14); color: var(--tertiary); }
+    .wb-pill.missing { background: rgba(180,19,64,0.08); color: var(--error); box-shadow: inset 0 0 0 1px rgba(180,19,64,0.18); }
+    .essay-toolbar { gap: 0.6rem; justify-content: flex-start; }
+    .essay-display {
+      background: var(--preview-bg);
+      font-size: var(--essay-font-size);
+      line-height: var(--essay-line-height);
+      min-height: 0;
+      overflow: auto;
+      padding: 1.4rem 1.55rem 2rem;
+    }
+    .essay-display p { margin: 0 0 1rem; }
+    .citation-warning {
+      background: rgba(245,158,11,0.12);
+      color: #8a5d00;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin: 0;
+      padding: 0.75rem 1.25rem;
+    }
+    .wb-highlight { background: #c8f0d8; color: #0b5a34; border-radius: 4px; font-weight: 700; padding: 0 2px; }
+    .essay-highlight { background: #fff176; border-radius: 4px; padding: 0 2px; }
+    .rubric-scroll { min-height: 0; overflow: auto; padding: 1rem; }
+    .rubric-card, .prime-panel, .summary-card, .analytics-card, .schoology-card, .rubric-editor-card {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius);
+      box-shadow: var(--ambient-tight), inset 0 0 0 1px var(--hairline);
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 1.1rem 1.2rem;
+    }
+    .rubric-card.collapsed .rubric-card-body { display: none; }
+    .rubric-card-head {
+      align-items: flex-start;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+    .rubric-card-head.collapsible { cursor: pointer; }
+    .rubric-title { display: inline-flex; gap: 0.55rem; align-items: center; font-size: 1.03rem; }
+    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+    .selected-band-chip { background: rgba(74,64,224,0.12); color: var(--primary); }
+    .score-state { background: var(--surface-container-low); color: var(--on-surface-variant); }
+    .rubric-performance-grid { display: grid; gap: 0.75rem; }
+    .performance-card {
+      align-items: flex-start;
+      background: var(--surface-container-low);
+      border: 0;
+      border-radius: var(--radius-md);
+      color: var(--on-surface);
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.9rem;
+      text-align: left;
+    }
+    .performance-card.selected { background: rgba(74,64,224,0.12); box-shadow: inset 0 0 0 2px rgba(74,64,224,0.28); }
+    .band-label-col { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
+    .score-row, .comment-chip-row, .prime-field-grid { display: grid; gap: 0.8rem; }
+    .score-row { grid-template-columns: 116px minmax(0, 1fr); }
+    .comment-chip-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .score-field span, .prime-field-grid label span { display: block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.35rem; text-transform: uppercase; }
+    .mini-input { min-height: 44px; text-align: center; }
+    .summary-total { font-size: 1.8rem; }
+    .summary-card .flag-btn.active { background: rgba(180,19,64,0.12); color: var(--error); }
+    .prime-notice, .points-callout {
+      background: rgba(245,158,11,0.14);
+      border-radius: 16px;
+      color: #8a5d00;
+      font-size: 0.84rem;
+      font-weight: 800;
+      padding: 0.7rem 0.9rem;
+    }
+    .comment-chip {
+      background: var(--surface-container-high);
+      border: 0;
+      color: var(--primary);
+      justify-content: center;
+      min-height: 40px;
+    }
+    .prime-panel-head { align-items: flex-start; display: flex; justify-content: space-between; gap: 1rem; }
+    .analytics-view, .schoology-view, .rubric-editor-view { display: grid; gap: 1.5rem; }
+    .analytics-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .band-distribution { border-radius: 999px; display: flex; gap: 0.25rem; height: 10px; overflow: hidden; }
+    .band-distribution span { display: block; height: 100%; }
+    .schoology-list { display: grid; gap: 1rem; }
+    .schoology-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .schoology-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+    .schoology-output {
+      background: var(--surface-container-low);
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      min-height: 140px;
+      padding: 0.95rem;
+      white-space: pre-wrap;
+    }
+    .schoology-row {
+      align-items: start;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .schoology-row-copy { display: grid; gap: 0.5rem; }
+    .schoology-meta { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .schoology-comment {
+      background: var(--surface-container-low);
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      margin-top: 0.75rem;
+      padding: 0.95rem;
+      white-space: pre-wrap;
+    }
+    .toast {
+      background: var(--toast-bg);
+      border-radius: var(--radius-md);
+      bottom: 1.25rem;
+      color: var(--on-primary);
+      left: 50%;
+      max-width: min(520px, calc(100vw - 2rem));
+      padding: 0.9rem 1rem;
+      position: fixed;
+      transform: translateX(-50%);
+      z-index: 40;
+    }
+    .modal-overlay, .setup-overlay {
+      align-items: center;
+      background: var(--scrim);
+      backdrop-filter: blur(8px);
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      left: 0;
+      padding: 1.5rem;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 100;
+    }
+    .setup-card, .modal-container {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius);
+      box-shadow: var(--modal-shadow), inset 0 0 0 1px var(--hairline);
+      display: grid;
+      max-height: min(92vh, 900px);
+      max-width: min(1100px, calc(100vw - 2rem));
+      overflow: hidden;
+      width: 100%;
+    }
+    .setup-card { max-width: 1080px; }
+    .setup-body, .modal-body { display: grid; gap: 1rem; max-height: 70vh; overflow: auto; padding: 1.25rem 1.5rem; }
+    .setup-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .setup-step {
+      background: var(--surface-container-low);
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      display: grid;
+      gap: 0.9rem;
+      padding: 1.1rem;
+    }
+    .setup-step.locked {
+      background: rgba(210, 228, 255, 0.42);
+      color: var(--on-surface-variant);
+    }
+    .setup-step.done {
+      background: rgba(105, 246, 184, 0.2);
+      box-shadow: inset 0 0 0 1px rgba(0, 105, 71, 0.18);
+    }
+    .setup-step.active { box-shadow: inset 0 0 0 2px rgba(74, 64, 224, 0.22); }
+    .setup-step-head {
+      align-items: center;
+      display: flex;
+      gap: 0.9rem;
+      justify-content: space-between;
+    }
+    .setup-step-status {
+      align-items: center;
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 0.74rem;
+      font-weight: 800;
+      gap: 0.35rem;
+      min-height: 32px;
+      padding: 0.4rem 0.75rem;
+      white-space: nowrap;
+    }
+    .setup-step-status.pending { background: var(--surface-container-high); color: var(--on-surface-variant); }
+    .setup-step-status.active { background: rgba(74,64,224,0.12); color: var(--primary); }
+    .setup-step-status.done { background: rgba(0,105,71,0.14); color: var(--tertiary); }
+    .setup-step-status.error { background: rgba(180,19,64,0.12); color: var(--error); }
+    .setup-link-btn.disabled-link {
+      background: var(--surface-container-high);
+      color: var(--on-surface-variant);
+      pointer-events: none;
+    }
+    .setup-helper-note {
+      background: rgba(74,64,224,0.08);
+      border-radius: 18px;
+      color: var(--primary);
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 0.9rem 1rem;
+    }
+    .modal-header, .setup-header, .modal-footer, .setup-footer {
+      align-items: center;
+      background: var(--surface-container-low);
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      padding: 1.1rem 1.5rem;
+    }
+    .setup-preview, .error-list {
+      background: var(--surface-container-lowest);
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px var(--hairline-menu);
+      font-size: 0.9rem;
+      max-height: 220px;
+      overflow: auto;
+      padding: 0.9rem;
+      white-space: pre-wrap;
+    }
+    .empty-state {
+      background: var(--surface-container-low);
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .rubric-editor-view {
+      display: grid;
+      gap: 1.5rem;
+    }
+    .rubric-editor-card-head {
+      flex-wrap: wrap;
+    }
+    .rubric-editor-title-input {
+      flex: 1;
+      font-family: "Arvo", Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-width: 180px;
+    }
+    .rubric-editor-max-input {
+      width: 72px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+    .rubric-editor-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.88rem;
+    }
+    .rubric-editor-table th {
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      text-transform: uppercase;
+    }
+    .rubric-editor-table td {
+      border-top: 1px solid var(--hairline-strong);
+      padding: 0.5rem 0.75rem;
+      vertical-align: top;
+    }
+    .rubric-editor-table textarea { min-height: 64px; }
+    .rubric-editor-band-actions, .rubric-editor-criterion-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+    .rubric-totals-bar .total-warn { color: var(--warn); display: flex; gap: 0.4rem; align-items: center; font-size: 0.88rem; }
+    .rubric-totals-bar .total-ok { color: var(--tertiary); display: flex; gap: 0.4rem; align-items: center; font-size: 0.88rem; }
+    #splashScreen {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      display: flex;
+      inset: 0;
+      justify-content: center;
+      position: fixed;
+      z-index: 200;
+    }
+    .splash-inner { align-items: center; display: flex; flex-direction: column; gap: 1rem; }
+    .splash-spinner {
+      animation: spin 0.9s linear infinite;
+      border: 3px solid var(--surface-container-high);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      height: 42px;
+      width: 42px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 1180px) {
+      .content-grid { grid-template-columns: 1fr; height: auto; }
+      .resize-handle { display: none; }
+      .comment-chip-row, .setup-grid, .score-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 860px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { height: auto; position: relative; width: auto; }
+      .workspace { padding: 1.25rem; }
+      .topbar { align-items: stretch; flex-direction: column; margin: -1.25rem -1.25rem 1.25rem; padding: 1.25rem; position: relative; }
+      .topbar-identity { align-items: flex-start; flex-direction: column; }
+      .topbar-actions { justify-content: flex-start; }
+      .topbar-mini-progress { display: none !important; }
+      .settings-menu { left: 0; right: auto; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    var TEACHER_KEY = 'castaneda';
+    var GAS_URL = 'https://script.google.com/a/macros/pausd.org/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec';
+    var DEFAULT_RUBRIC = [
+      { key: 'claim', title: 'Claim', max: 4, bands: [
+        { label: 'Full Credit', score: 4, text: 'Clear, arguable claim for each of the three questions that directly addresses the prompt.' },
+        { label: 'Partial', score: 3, text: 'Claims present for most questions; at least one is vague or partially addresses the prompt.' },
+        { label: 'Minimal', score: 2, text: 'Only one clear claim present; others are missing or are restatements of the question.' },
+        { label: 'Missing', score: 0, text: 'No discernible claims across the three responses.' }
+      ]},
+      { key: 'evidence', title: 'Evidence', max: 8, bands: [
+        { label: 'Full Credit', score: 8, text: 'Specific, accurate historical evidence across all three responses; all 6 vocabulary terms present.' },
+        { label: 'Strong', score: 7, text: 'Mostly specific evidence; all vocab terms present but one response relies on generalities.' },
+        { label: 'Approaching', score: 6, text: 'Some specific evidence; 1-2 vocabulary terms missing or evidence inconsistent across questions.' },
+        { label: 'Developing', score: 4, text: 'Limited specific evidence; multiple vocabulary terms missing; responses rely heavily on generalities.' },
+        { label: 'Insufficient', score: 2, text: 'Minimal or inaccurate evidence; most vocabulary terms absent.' },
+        { label: 'Missing', score: 0, text: 'No evidence provided.' }
+      ]},
+      { key: 'reasoning', title: 'Reasoning', max: 6, bands: [
+        { label: 'Full Credit', score: 6, text: 'Analysis clearly connects evidence to claims across all three responses; demonstrates understanding of causation, significance, or change over time.' },
+        { label: 'Partial', score: 5, text: 'Reasoning present in most responses; one response summarizes rather than analyzes.' },
+        { label: 'Developing', score: 3, text: 'Reasoning is surface-level or present in only one response; evidence listed rather than explained.' },
+        { label: 'Missing', score: 1, text: 'No analysis; responses are purely descriptive or list facts without explanation.' }
+      ]},
+      { key: 'mechanics', title: 'Mechanics', max: 2, bands: [
+        { label: 'Full Credit', score: 2, text: 'Writing is clear and organized; paragraph structure evident; errors do not impede meaning.' },
+        { label: 'Partial', score: 1, text: 'Multiple errors or inconsistent paragraph structure that occasionally impedes meaning.' },
+        { label: 'Missing', score: 0, text: 'Frequent errors that significantly impede readability; no paragraph structure.' }
+      ]}
+    ];
+    var VOCAB_TERMS = [
+      { label: 'Dictator', pattern: /\bdictator(ship(s)?|s)?\b/gi },
+      { label: 'Democracy', pattern: /\bdemocra(cy|tic|tize|tization)\b/gi },
+      { label: 'Communism', pattern: /\bcommuni(sm|st|sts|stly)\b/gi },
+      { label: "Coup d'etat", pattern: /\bcoup(\s+d['\u2019][\u00e9e]tat|\s+detat)?\b/gi },
+      { label: 'Theocracy', pattern: /\btheocra(cy|tic|tize)\b/gi },
+      { label: 'Nationalized', pattern: /\bnational(iz(e[ds]?|ation|ing|ed)|ize)\b/gi }
+    ];
+    var TEACHER_CONFIGS = {
+      tinsley: { name: 'Mr. Tinsley', periods: ['3'] },
+      castaneda: { name: 'Mr. Castaneda', periods: ['1', '2'] }
+    };
+    var COMMENT_CHIPS = [
+      'Strong use of vocab',
+      'Missing vocab terms',
+      'Needs more specific evidence',
+      'Claims need to be more arguable',
+      'Good analysis of causation',
+      'Summarizing rather than analyzing',
+      'Excellent three-question coverage',
+      'Strong historical detail'
+    ];
+    var state = {
+      students: [],
+      summary: {},
+      settings: {},
+      selectedStudentId: '',
+      selectedStudent: null,
+      periodFilter: 'All',
+      primeMode: false,
+      dirty: false,
+      saveTimer: null,
+      primeSaveTimer: null,
+      rubricCollapsed: {},
+      setupComplete: false,
+      teacherKey: TEACHER_KEY,
+      teacher: TEACHER_CONFIGS[TEACHER_KEY],
+      rubric: JSON.parse(JSON.stringify(DEFAULT_RUBRIC)),
+      rubricDirty: false,
+      isSaving: false,
+      mode: 'grading',
+      analytics: null,
+      rosterRows: [],
+      essayRows: [],
+      highlightMode: false,
+      setupWizard: {
+        initialized: false,
+        active: false,
+        rosterParsed: false,
+        rosterUploaded: false,
+        scraperOpened: false,
+        essaysParsed: false,
+        essaysUploaded: false,
+        rosterError: '',
+        essayError: ''
+      }
+    };
+    var els = {};
+  </script>
+
+  <div id="splashScreen" aria-live="polite">
+    <div class="splash-inner">
+      <div class="splash-spinner"></div>
+      <p class="eyebrow">Loading students...</p>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <p class="eyebrow">Iran Summative</p>
+        <h1 id="teacherTitle">Teacher</h1>
+      </div>
+      <div class="filter-row" id="periodFilters"></div>
+      <div class="progress-card">
+        <div class="progress-ring">
+          <svg viewBox="0 0 72 72">
+            <circle class="progress-ring-track" cx="36" cy="36" r="28"></circle>
+            <circle class="progress-ring-value" id="summaryProgressRing" cx="36" cy="36" r="28"></circle>
+          </svg>
+          <span id="summaryPercent">0%</span>
+        </div>
+        <div class="progress-copy">
+          <span>Grading Progress</span>
+          <strong id="summaryCount">0/0</strong>
+          <div class="subtle" id="primeSummary">0 need PRIME</div>
+        </div>
+      </div>
+      <label class="jump-label" for="studentJump">Quick jump</label>
+      <select id="studentJump" class="student-jump"></select>
+      <div id="studentList" class="group-list"></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="topbar-identity">
+          <button class="icon-btn" id="sidebarToggle" aria-label="Toggle sidebar"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+          <div class="topbar-identity-copy">
+            <p class="eyebrow" id="periodLabel">Select a student</p>
+            <h2 id="studentTitle">Iran Summative Grader</h2>
+            <p class="subtle" id="studentMeta">Upload roster and essays or select a student to begin.</p>
+          </div>
+          <button class="topbar-mini-progress hidden" id="topbarMiniProgress" type="button" aria-hidden="true" aria-label="Show grading progress">
+            <span class="mini-progress-ring">
+              <svg viewBox="0 0 72 72">
+                <circle class="progress-ring-track" cx="36" cy="36" r="28"></circle>
+                <circle class="progress-ring-value" id="miniProgressRing" cx="36" cy="36" r="28"></circle>
+              </svg>
+              <span id="miniProgressLabel">0%</span>
+            </span>
+            <span class="mini-progress-copy">
+              <span class="eyebrow" style="margin:0;">Progress</span>
+              <strong id="miniProgressCount">0/0 graded</strong>
+            </span>
+          </button>
+        </div>
+        <div class="topbar-actions">
+          <span class="save-pill" id="saveState"><i class="ti ti-device-floppy"></i> Loading</span>
+          <button class="secondary-btn hidden" id="printPrimeTopBtn"><i class="ti ti-printer"></i> Print This Student</button>
+          <button class="secondary-btn" id="primeModeBtn"><i class="ti ti-pencil-plus"></i> PRIME</button>
+          <button class="secondary-btn" id="prevStudentBtn"><i class="ti ti-arrow-left"></i> Prev</button>
+          <button class="secondary-btn" id="nextStudentBtn">Next <i class="ti ti-arrow-right"></i></button>
+          <button class="primary-btn" id="nextUngradedBtn"><i class="ti ti-player-skip-forward"></i> Next Ungraded</button>
+          <div class="settings-menu-wrap">
+            <button class="icon-btn" id="settingsBtn" aria-expanded="false"><i class="ti ti-settings"></i></button>
+            <div class="settings-menu hidden" id="settingsMenu" role="menu">
+              <div class="settings-menu-group">
+                <button type="button" id="analyticsBtn" role="menuitem"><i class="ti ti-chart-bar"></i> Analytics</button>
+                <button type="button" id="schoologyBtn" role="menuitem"><i class="ti ti-copy"></i> Schoology Mode</button>
+                <button type="button" id="rubricEditorBtn" role="menuitem"><i class="ti ti-table-options"></i> Edit Rubric</button>
+                <a id="settingsOpenSheetLink" href="#" target="_blank" rel="noopener" role="menuitem"><i class="ti ti-table-share"></i> Open in Sheets</a>
+              </div>
+              <div class="settings-menu-group">
+                <p class="settings-menu-label">PRIME Threshold</p>
+                <div class="settings-inline-row">
+                  <input class="field-input" id="primeThresholdInput" type="number" min="1" max="100" step="1" inputmode="numeric">
+                  <button type="button" class="secondary-btn" id="savePrimeThresholdBtn"><i class="ti ti-check"></i> Save</button>
+                </div>
+                <p class="settings-menu-note" id="primeThresholdNote">PRIME triggers at 1% below this value to avoid borderline cases.</p>
+              </div>
+              <div class="settings-menu-group">
+                <button type="button" id="readerDefaultBtn" role="menuitem"><i class="ti ti-sun"></i> Reader Default</button>
+                <button type="button" id="readerBeigeBtn" role="menuitem"><i class="ti ti-book"></i> Reader Beige</button>
+                <button type="button" id="readerDarkBtn" role="menuitem"><i class="ti ti-moon"></i> Reader Dark</button>
+                <button type="button" id="returnGradingBtn" class="hidden" role="menuitem"><i class="ti ti-pencil"></i> Return to Grading</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="notice error hidden" id="errorBox"></section>
+
+      <section class="content-grid hidden" id="gradingContent">
+        <section class="panel essay-pane">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Student Response</p>
+              <h3><i class="ti ti-file-text"></i> Essay Review</h3>
+              <p class="section-note">Single-question Schoology export, reformatted for faster grading.</p>
+            </div>
+          </div>
+          <div class="essay-student-bar">
+            <div>
+              <strong id="essayStudentName">No student selected</strong>
+              <div class="subtle" id="essayStudentMeta">Word count and submission status appear here.</div>
+            </div>
+            <span class="warn-chip hidden" id="essayWordWarn"><i class="ti ti-alert-triangle"></i> Under 80 words</span>
+          </div>
+          <div class="word-bank-bar">
+            <div class="number-font" id="vocabSummary"><i class="ti ti-vocabulary"></i> Vocab: 0/6 terms</div>
+            <div class="word-bank-right" id="wordBankPills"></div>
+          </div>
+          <div class="essay-toolbar">
+            <select class="field-select" id="fontSizeSelect" style="width:140px;">
+              <option value="15">Small text</option>
+              <option value="17" selected>Normal text</option>
+              <option value="19">Large text</option>
+            </select>
+            <select class="field-select" id="lineSpacingSelect" style="width:160px;">
+              <option value="1.5">Tight spacing</option>
+              <option value="1.7" selected>Normal spacing</option>
+              <option value="2">Loose spacing</option>
+            </select>
+            <button class="secondary-btn" id="highlightToggleBtn"><i class="ti ti-highlighter"></i> Highlight</button>
+            <button class="secondary-btn" id="clearHighlightsBtn"><i class="ti ti-eraser"></i> Clear Highlights</button>
+          </div>
+          <p class="citation-warning hidden" id="citationWarning">This submission is very short. Double-check whether the student actually answered all parts of the prompt.</p>
+          <div class="essay-display" id="essayContent"></div>
+        </section>
+
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        <section class="panel rubric-pane">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow" id="rubricEyebrow">20 Point Rubric</p>
+              <h3><i class="ti ti-pencil-check"></i> CER Rubric</h3>
+              <p class="section-note">Scores autosave after a short delay. PRIME controls appear in PRIME mode.</p>
+            </div>
+            <button class="secondary-btn" id="noSubmissionBtn"><i class="ti ti-file-x"></i> Mark No Submission</button>
+          </div>
+          <div class="rubric-scroll" id="rubricList"></div>
+        </section>
+      </section>
+
+      <section class="analytics-view hidden" id="analyticsContent">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Class Snapshot</p>
+            <h3><i class="ti ti-chart-bar"></i> Analytics</h3>
+            <p class="section-note">Progress, averages, vocab use, and by-period breakdown.</p>
+          </div>
+        </div>
+        <div class="analytics-grid" id="analyticsGrid"></div>
+      </section>
+
+      <section class="schoology-view hidden" id="schoologyContent">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Copy + Paste</p>
+            <h3><i class="ti ti-copy"></i> Schoology Mode</h3>
+            <p class="section-note">Quick export rows for the current teacher view with score, status, and stitched feedback.</p>
+          </div>
+          <div class="schoology-actions">
+            <button class="secondary-btn" id="copySchoologyRowsBtn" type="button"><i class="ti ti-copy"></i> Copy All Rows</button>
+            <button class="secondary-btn" id="copySchoologyCommentsBtn" type="button"><i class="ti ti-message"></i> Copy Comments Only</button>
+          </div>
+        </div>
+        <article class="schoology-card">
+          <div class="schoology-head">
+            <div>
+              <strong>Batch Rows</strong>
+              <p class="section-note" id="schoologySummary">Rows update from the current grading data.</p>
+            </div>
+          </div>
+          <div class="schoology-output" id="schoologyRowsOutput"></div>
+        </article>
+        <div class="schoology-list" id="schoologyList"></div>
+      </section>
+
+      <section class="rubric-editor-view hidden" id="rubricEditorContent">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Settings</p>
+            <h3><i class="ti ti-table-options"></i> Rubric Editor</h3>
+            <p class="section-note" id="rubricEditorNote">Edit criterion titles, band labels, point values, and descriptions. Changes apply immediately on save.</p>
+          </div>
+          <div style="display:flex;gap:0.65rem;align-items:center;flex-wrap:wrap;">
+            <span class="save-pill hidden" id="rubricSavePill"><i class="ti ti-device-floppy"></i> Unsaved changes</span>
+            <button class="secondary-btn" id="rubricResetBtn"><i class="ti ti-rotate"></i> Reset to Defaults</button>
+            <button class="primary-btn" id="rubricSaveBtn"><i class="ti ti-check"></i> Save Rubric</button>
+          </div>
+        </div>
+        <section class="notice error hidden" id="rubricErrorBox"></section>
+        <div id="rubricEditorBody"></div>
+      </section>
+
+      <section class="empty-state" id="emptyState">
+        <h2>Upload setup files or choose a student.</h2>
+        <p>The sidebar will fill once the shared sheet already has students for this teacher, or after setup finishes.</p>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <div class="modal-overlay hidden" id="confirmModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="confirmEyebrow">Confirm</p>
+          <h3 id="confirmTitle">Confirm Action</h3>
+        </div>
+        <button class="icon-btn" id="confirmClose"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body" id="confirmBody"></div>
+      <div class="modal-footer">
+        <button class="secondary-btn" id="confirmCancel" type="button">Cancel</button>
+        <button class="primary-btn" id="confirmOk" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-overlay hidden" id="setupOverlay">
+    <div class="setup-card">
+      <div class="setup-header">
+        <div>
+          <p class="eyebrow">First-Time Setup</p>
+          <h3 style="margin:0;font-family:'Arvo',Georgia,serif;">Let’s get your grader ready</h3>
+          <p class="section-note">Follow the steps in order. The shared sheet safeguards stay exactly the same, including the existing confirmation modals before any batch write.</p>
+        </div>
+      </div>
+      <div class="setup-body">
+        <div class="setup-helper-note">Start with the roster, confirm it loaded, open the scraper, upload the Schoology CSV, then the grader will unlock for normal use.</div>
+        <div class="setup-grid">
+          <section class="setup-step" id="setupStep1">
+            <div class="setup-step-head">
+              <div>
+              <p class="eyebrow">Step 1</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Upload roster</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep1Status">Waiting</span>
+            </div>
+            <p class="section-note">Expected columns: ID, Last Name, First Name, Grade, Course #, Course Name, Period, Teacher, Email.</p>
+            <input type="file" id="rosterFileInput" accept=".xlsx,.xls">
+            <div class="setup-preview" id="rosterPreview">No roster loaded yet.</div>
+          </section>
+          <section class="setup-step" id="setupStep2">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 2</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Confirm roster loaded</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep2Status">Waiting</span>
+            </div>
+            <p class="section-note">This uses the same shared-sheet upload confirmation you already have, so nothing writes until you approve the preview list.</p>
+            <button class="primary-btn" id="uploadRosterBtn"><i class="ti ti-upload"></i> Confirm Roster Upload</button>
+            <div class="setup-preview" id="rosterUploadStatus">Upload not started yet.</div>
+          </section>
+          <section class="setup-step" id="setupStep3">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 3</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Open the scraper tool</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep3Status">Waiting</span>
+            </div>
+            <p class="section-note">Open the Schoology scraper helper in a new tab, install the bookmarklet once, and use it from the submissions page.</p>
+            <a class="primary-btn setup-link-btn" id="openScraperLink" href="./scraper_v1.html" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Open Scraper Tool</a>
+            <div class="setup-preview" id="scraperPreview">This step unlocks the CSV upload area.</div>
+          </section>
+          <section class="setup-step" id="setupStep4">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 4</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Upload Schoology CSV</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep4Status">Waiting</span>
+            </div>
+            <p class="section-note">Upload the CSV downloaded by the scraper. We’ll preview how many submissions were found before anything gets matched.</p>
+            <input type="file" id="essayFileInput" accept=".csv">
+            <div class="setup-preview" id="essayPreview">No submissions CSV loaded yet.</div>
+          </section>
+          <section class="setup-step" id="setupStep5">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 5</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Confirm submissions loaded</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep5Status">Waiting</span>
+            </div>
+            <p class="section-note">Matched and unmatched names will show in the existing confirmation modal before the shared sheet is updated.</p>
+            <button class="primary-btn" id="uploadEssayBtn"><i class="ti ti-upload"></i> Upload Submissions</button>
+            <div class="setup-preview" id="essayUploadStatus">Upload not started yet.</div>
+          </section>
+          <section class="setup-step" id="setupStep6">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 6</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Start grading</h3>
+              </div>
+              <span class="setup-step-status pending" id="setupStep6Status">Waiting</span>
+            </div>
+            <p class="section-note">Once roster and submissions are both in place, the normal grader unlocks and everything else works as usual.</p>
+            <div class="setup-preview" id="startPreview">Finish the first five steps to unlock the grader.</div>
+          </section>
+        </div>
+      </div>
+      <div class="setup-footer">
+        <button class="primary-btn" id="startGradingBtn"><i class="ti ti-arrow-right"></i> Start Grading</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+      cacheElements();
+      bindEvents();
+      renderTeacherFrame();
+      setSaveState('Loading', 'saving');
+      initResizeHandle();
+      syncSidebarChrome();
+      renderSetupWizard();
+      loadAppData();
+    }
+
+    function cacheElements() {
+      [
+        'teacherTitle', 'periodFilters', 'summaryProgressRing', 'summaryPercent', 'summaryCount', 'primeSummary', 'studentJump', 'studentList',
+        'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn',
+        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn',
+        'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
+        'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
+        'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'essayStudentName', 'essayStudentMeta',
+        'essayWordWarn', 'vocabSummary', 'wordBankPills', 'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
+        'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
+        'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
+        'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
+        'toast', 'confirmModal', 'confirmEyebrow', 'confirmTitle', 'confirmBody', 'confirmClose', 'confirmCancel', 'confirmOk',
+        'setupOverlay', 'rosterFileInput', 'essayFileInput', 'rosterPreview', 'essayPreview', 'uploadRosterBtn', 'uploadEssayBtn',
+        'startGradingBtn', 'splashScreen',
+        'setupStep1', 'setupStep2', 'setupStep3', 'setupStep4', 'setupStep5', 'setupStep6',
+        'setupStep1Status', 'setupStep2Status', 'setupStep3Status', 'setupStep4Status', 'setupStep5Status', 'setupStep6Status',
+        'rosterUploadStatus', 'scraperPreview', 'essayUploadStatus', 'startPreview', 'openScraperLink'
+      ].forEach(function(id) { els[id] = document.getElementById(id); });
+    }
+
+    function bindEvents() {
+      els.studentJump.addEventListener('change', function(event) { selectStudent(event.target.value); });
+      els.prevStudentBtn.addEventListener('click', function() { moveStudent(-1); });
+      els.nextStudentBtn.addEventListener('click', function() { moveStudent(1); });
+      els.nextUngradedBtn.addEventListener('click', selectNextUngraded);
+      els.settingsBtn.addEventListener('click', toggleSettingsMenu);
+      els.analyticsBtn.addEventListener('click', enterAnalyticsMode);
+      els.schoologyBtn.addEventListener('click', enterSchoologyMode);
+      els.rubricEditorBtn.addEventListener('click', enterRubricEditorMode);
+      els.returnGradingBtn.addEventListener('click', returnToGradingMode);
+      els.primeModeBtn.addEventListener('click', togglePrimeMode);
+      els.sidebarToggle.addEventListener('click', toggleSidebar);
+      els.topbarMiniProgress.addEventListener('click', toggleSidebar);
+      els.fontSizeSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-font-size', els.fontSizeSelect.value + 'px'); });
+      els.lineSpacingSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-line-height', els.lineSpacingSelect.value); });
+      els.highlightToggleBtn.addEventListener('click', toggleHighlightMode);
+      els.clearHighlightsBtn.addEventListener('click', clearManualHighlights);
+      els.noSubmissionBtn.addEventListener('click', toggleNoSubmission);
+      els.printPrimeTopBtn.addEventListener('click', printPrimeSheet);
+      els.rosterFileInput.addEventListener('change', handleRosterFile);
+      els.essayFileInput.addEventListener('change', handleEssayFile);
+      els.uploadRosterBtn.addEventListener('click', confirmRosterUpload);
+      els.uploadEssayBtn.addEventListener('click', confirmEssayUpload);
+      els.startGradingBtn.addEventListener('click', finishSetupWizard);
+      els.openScraperLink.addEventListener('click', handleScraperLink);
+      els.copySchoologyRowsBtn.addEventListener('click', function() { copySchoologyBundle('rows'); });
+      els.copySchoologyCommentsBtn.addEventListener('click', function() { copySchoologyBundle('comments'); });
+      els.savePrimeThresholdBtn.addEventListener('click', savePrimeThresholdSetting);
+      els.primeThresholdInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          savePrimeThresholdSetting();
+        }
+      });
+      els.rubricSaveBtn.addEventListener('click', saveRubricFromEditor);
+      els.rubricResetBtn.addEventListener('click', resetRubricDefaults);
+      els.confirmClose.addEventListener('click', closeConfirmModal);
+      els.confirmCancel.addEventListener('click', closeConfirmModal);
+      els.confirmOk.addEventListener('click', runConfirmAction);
+      els.readerDefaultBtn.addEventListener('click', function() { setReaderMode('default'); });
+      els.readerBeigeBtn.addEventListener('click', function() { setReaderMode('beige'); });
+      els.readerDarkBtn.addEventListener('click', function() { setReaderMode('dark'); });
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.settings-menu-wrap')) closeSettingsMenu();
+      });
+      document.addEventListener('keydown', handleKeys);
+      window.addEventListener('beforeunload', function(event) {
+        if (!state.dirty && !state.rubricDirty) return;
+        event.preventDefault();
+        event.returnValue = '';
+      });
+      els.essayContent.addEventListener('mouseup', applyManualHighlightIfNeeded);
+    }
+
+    function renderTeacherFrame() {
+      els.teacherTitle.textContent = state.teacher.name;
+      var filters = ['All'].concat(state.teacher.periods).map(function(period) {
+        var label = period === 'All' ? 'All' : 'P' + period;
+        return '<button class="filter-btn ' + (period === 'All' ? 'active' : '') + '" data-period="' + escapeHtml(period) + '">' + escapeHtml(label) + '</button>';
+      }).join('');
+      els.periodFilters.innerHTML = filters;
+      Array.prototype.slice.call(document.querySelectorAll('[data-period]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          Array.prototype.slice.call(document.querySelectorAll('[data-period]')).forEach(function(btn) { btn.classList.remove('active'); });
+          button.classList.add('active');
+          state.periodFilter = button.getAttribute('data-period');
+          renderStudentNav();
+          if (state.mode === 'schoology') renderSchoology();
+        });
+      });
+    }
+
+    async function apiGet(action, params) {
+      params = params || {};
+      params.action = action;
+      params.teacherKey = TEACHER_KEY;
+      var qs = Object.keys(params).map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      }).join('&');
+      var res = await fetch(GAS_URL + '?' + qs);
+      return res.json();
+    }
+
+    async function apiPost(payload) {
+      payload.teacherKey = TEACHER_KEY;
+      var res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      return res.json();
+    }
+
+    async function loadAppData() {
+      clearError();
+      try {
+        var response = await apiGet('getStudents');
+        dismissSplash();
+        if (!response.ok) return showError(response.message || 'Unable to load students.');
+        state.students = response.students || [];
+        state.summary = response.summary || {};
+        state.settings = response.settings || state.settings || {};
+        state.rubric = response.rubric || JSON.parse(JSON.stringify(DEFAULT_RUBRIC));
+        els.settingsOpenSheetLink.href = response.spreadsheetUrl || 'https://docs.google.com/spreadsheets/d/1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc/edit';
+        syncPrimeThresholdUi();
+        if (!state.setupWizard.initialized) {
+          state.setupWizard.initialized = true;
+          state.setupWizard.active = !state.students.length;
+        }
+        syncSetupWizardFromData();
+        renderSummary();
+        renderStudentNav();
+        renderSetupWizard();
+        setSaveState('Saved', 'saved');
+        if (state.setupWizard.active) {
+          els.setupOverlay.classList.remove('hidden');
+          renderEmpty();
+          return;
+        }
+        els.setupOverlay.classList.add('hidden');
+        if (!state.students.length) {
+          renderEmpty();
+          return;
+        }
+        if (!state.selectedStudentId && visibleStudents().length) selectStudent(visibleStudents()[0].studentId);
+        else if (state.selectedStudentId && !state.selectedStudent) selectStudent(state.selectedStudentId);
+        if (state.mode === 'schoology') renderSchoology();
+      } catch (err) {
+        dismissSplash();
+        showError(err.message || String(err));
+      }
+    }
+
+    async function selectStudent(studentId) {
+      if (!studentId) return;
+      clearError();
+      setSaveState('Loading', 'saving');
+      state.selectedStudentId = studentId;
+      markActiveStudent();
+      try {
+        var response = await apiGet('getStudentDetails', { studentId: studentId });
+        if (!response.ok) return showError(response.message || 'Unable to load student.');
+        state.selectedStudent = response.student;
+        state.settings = response.settings || state.settings || {};
+        if (response.rubric) state.rubric = response.rubric;
+        syncPrimeThresholdUi();
+        state.dirty = false;
+        renderStudentDetails();
+        setSaveState('Saved', 'saved');
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function visibleStudents() {
+      return state.students.filter(function(student) {
+        var periodMatch = state.periodFilter === 'All' || String(student.period) === String(state.periodFilter);
+        var primeMatch = !state.primeMode || student.primeEligible === 'YES';
+        return periodMatch && primeMatch;
+      });
+    }
+
+    function renderSummary() {
+      var total = Number(state.summary.total) || 0;
+      var complete = Number(state.summary.complete) || 0;
+      var percent = total ? Math.round((complete / total) * 100) : 0;
+      var circumference = 2 * Math.PI * 28;
+      els.summaryPercent.textContent = percent + '%';
+      els.summaryCount.textContent = complete + '/' + total;
+      els.primeSummary.textContent = (state.summary.primeCount || 0) + ' need PRIME';
+      els.summaryProgressRing.style.strokeDasharray = String(circumference);
+      els.summaryProgressRing.style.strokeDashoffset = String(circumference - (percent / 100) * circumference);
+      syncMiniProgress();
+    }
+
+    function renderStudentNav() {
+      var students = visibleStudents();
+      els.studentList.innerHTML = '';
+      els.studentJump.innerHTML = students.map(function(student) {
+        return '<option value="' + escapeAttr(student.studentId) + '">' + escapeHtml(student.name) + ' - P' + escapeHtml(student.period) + '</option>';
+      }).join('');
+      students.forEach(function(student) {
+        var button = document.createElement('button');
+        button.className = 'group-item' + (student.primeEligible === 'YES' ? ' prime-eligible' : '') + (student.studentId === state.selectedStudentId ? ' active' : '');
+        button.setAttribute('data-student-id', student.studentId);
+        var vocabCount = Array.isArray(student.vocabFound) ? student.vocabFound.length : splitCsv(student.vocabFound).length;
+        button.innerHTML = '' +
+          '<div class="student-name-row">' +
+            '<strong class="student-name-text">' + escapeHtml(student.name) + '</strong>' +
+            '<span class="student-score-inline">' + (student.totalScore !== '' ? escapeHtml(String(student.totalScore)) + '/' + getCurrentTotalMax() : '') + '</span>' +
+          '</div>' +
+          '<span class="group-meta">' +
+            '<span class="student-card-badges">' +
+              '<span class="period-badge">P' + escapeHtml(student.period) + '</span>' +
+              '<span class="status-badge" data-status="' + escapeAttr(student.status) + '">' + escapeHtml(student.status) + '</span>' +
+              (student.primeEligible === 'YES' ? '<span class="prime-badge"><i class="ti ti-pencil-plus"></i> PRIME</span>' : '') +
+            '</span>' +
+            '<span class="vocab-count-pill ' + (vocabCount === 6 ? 'good' : 'warn') + '">' + vocabCount + '/6</span>' +
+          '</span>';
+        button.addEventListener('click', function() { selectStudent(student.studentId); });
+        els.studentList.appendChild(button);
+      });
+      if (students.length) els.studentJump.value = state.selectedStudentId || students[0].studentId;
+      markActiveStudent();
+      if (state.mode === 'schoology') renderSchoology();
+    }
+
+    function renderStudentDetails() {
+      if (!state.selectedStudent) return renderEmpty();
+      state.mode = 'grading';
+      updateModeVisibility();
+      var student = state.selectedStudent;
+      var wc = countWords(student.essay);
+      els.periodLabel.textContent = 'Period ' + (student.period || '-');
+      els.studentTitle.textContent = student.name || 'Student';
+      els.studentMeta.textContent = formatStudentMeta(student);
+      els.printPrimeTopBtn.classList.toggle('hidden', !state.primeMode || student.primeEligible !== 'YES');
+      els.noSubmissionBtn.innerHTML = student.status === 'No Submission'
+        ? '<i class="ti ti-file-check"></i> Clear No Submission'
+        : '<i class="ti ti-file-x"></i> Mark No Submission';
+      els.essayStudentName.textContent = student.name || 'Student';
+      els.essayStudentMeta.textContent = '~' + wc + ' words • ' + (student.status || 'Ungraded');
+      els.essayWordWarn.classList.toggle('hidden', wc >= 80 || !student.essay);
+      els.citationWarning.classList.toggle('hidden', wc >= 80 || !student.essay);
+      renderEssay(student);
+      renderRubric(student);
+      markActiveStudent();
+      els.studentJump.value = student.studentId;
+    }
+
+    function renderEssay(student) {
+      var vocab = detectVocabTerms(student.essay || '');
+      student.vocabFound = vocab.found.slice();
+      student.vocabMissing = vocab.missing.slice();
+      els.vocabSummary.innerHTML = '<i class="ti ti-vocabulary"></i> Vocab: ' + vocab.found.length + '/6 terms';
+      els.wordBankPills.innerHTML = VOCAB_TERMS.map(function(term) {
+        var found = vocab.found.indexOf(term.label) > -1;
+        return '<span class="wb-pill ' + (found ? 'found' : 'missing') + '">' +
+          '<i class="ti ' + (found ? 'ti-circle-check' : 'ti-circle-x') + '"></i>' + escapeHtml(term.label) +
+        '</span>';
+      }).join('');
+      var html = formatEssay(student.essay || '');
+      els.essayContent.innerHTML = applyVocabHighlights(html);
+    }
+
+    function formatEssay(text) {
+      if (!text) return '<p class="subtle">No essay is loaded for this student yet.</p>';
+      return text.split(' | ').map(function(line) {
+        return '<p>' + escapeHtml(line) + '</p>';
+      }).join('');
+    }
+
+    function detectVocabTerms(plainText) {
+      var found = [];
+      var missing = [];
+      VOCAB_TERMS.forEach(function(term) {
+        term.pattern.lastIndex = 0;
+        if (term.pattern.test(plainText || '')) found.push(term.label);
+        else missing.push(term.label);
+      });
+      return { found: found, missing: missing };
+    }
+
+    function applyVocabHighlights(html) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString('<div>' + html + '</div>', 'text/html');
+      walkTextNodes(doc.body, function(node) {
+        var raw = node.nodeValue;
+        if (!raw) return;
+        // Test against raw text (not escaped) so apostrophes match correctly
+        var hasMatch = VOCAB_TERMS.some(function(term) {
+          term.pattern.lastIndex = 0;
+          return term.pattern.test(raw);
+        });
+        if (!hasMatch) return;
+        // Split raw text into matched and unmatched segments, escape each segment
+        // individually, wrap matches in <mark>
+        var result = raw;
+        VOCAB_TERMS.forEach(function(term) {
+          term.pattern.lastIndex = 0;
+          result = result.replace(term.pattern, function(match) {
+            return '\x00MARK\x00' + match + '\x00ENDMARK\x00';
+          });
+        });
+        // Now escape the whole string, then restore the mark tags
+        var escaped = escapeHtml(result);
+        escaped = escaped.replace(/\x00MARK\x00(.*?)\x00ENDMARK\x00/g, function(_, m) {
+          return '<mark class="wb-highlight">' + m + '</mark>';
+        });
+        var span = doc.createElement('span');
+        span.innerHTML = escaped;
+        node.parentNode.replaceChild(span, node);
+      });
+      return doc.body.innerHTML;
+    }
+
+    function renderRubric(student) {
+      els.rubricEyebrow.textContent = getCurrentTotalMax() + ' Point Rubric';
+      els.rubricList.innerHTML = '';
+      state.rubric.forEach(function(criterion, index) {
+        var score = scoreOrBlank(student.scores[criterion.key]);
+        var selectedBand = (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); });
+        var hasScore = score !== '';
+        var collapsed = hasScore && state.rubricCollapsed[criterion.key] !== false;
+        var article = document.createElement('article');
+        article.className = 'rubric-card' + (collapsed ? ' collapsed' : '');
+        article.setAttribute('data-criterion', criterion.key);
+        article.innerHTML = '' +
+          '<div class="rubric-card-head ' + (hasScore ? 'collapsible' : '') + '">' +
+            '<div>' +
+              '<span class="rubric-title"><span class="rubric-icon"><i class="ti ti-circle-number-' + (index + 1) + '"></i></span>' + escapeHtml(criterion.title) + '</span>' +
+              '<div class="subtle">0-' + escapeHtml(String(criterion.max)) + ' points</div>' +
+            '</div>' +
+            '<div class="rubric-head-actions">' +
+              (selectedBand ? '<span class="selected-band-chip">' + escapeHtml(selectedBand.label) + '</span>' : '') +
+              '<span class="score-state">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
+              (hasScore ? '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="rubric-card-body">' +
+            '<div class="rubric-performance-grid">' +
+              criterion.bands.map(function(band) {
+                var selected = Number(score) === Number(band.score);
+                return '<button type="button" class="performance-card ' + (selected ? 'selected' : '') + '" data-band-score="' + escapeAttr(band.score) + '" data-criterion-key="' + escapeAttr(criterion.key) + '">' +
+                  '<div class="band-label-col"><strong>' + escapeHtml(band.label) + '</strong><span>' + escapeHtml(String(band.score)) + ' pts</span></div>' +
+                  '<p style="margin:0;" class="subtle">' + escapeHtml(band.text) + '</p>' +
+                '</button>';
+              }).join('') +
+            '</div>' +
+            '<div class="score-row">' +
+              '<label class="score-field"><span>Manual score</span><input class="mini-input" type="number" min="0" max="' + escapeAttr(criterion.max) + '" step="1" data-score-input="' + escapeAttr(criterion.key) + '" value="' + escapeAttr(score) + '"></label>' +
+              '<div></div>' +
+            '</div>' +
+          '</div>';
+        els.rubricList.appendChild(article);
+      });
+      els.rubricList.insertAdjacentHTML('beforeend', renderSummaryCard(student));
+      els.rubricList.insertAdjacentHTML('beforeend', renderPrimePanel(student));
+      bindRubricEvents();
+    }
+
+    function renderSummaryCard(student) {
+      var total = student.totalScore === '' ? computeLocalTotal(student.scores) : student.totalScore;
+      var percent = student.percent === '' && total !== '' ? round1(total / getCurrentTotalMax() * 100) : student.percent;
+      return '' +
+        '<article class="summary-card">' +
+          state.rubric.map(function(criterion) {
+            return '<div class="score-summary-row"><span>' + escapeHtml(criterion.title) + '</span><strong>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</strong></div>';
+          }).join('') +
+          '<div class="score-summary-row" style="justify-content:space-between;align-items:flex-end;border-top:1px solid var(--hairline);padding-top:0.6rem;">' +
+            '<div><div class="eyebrow">Overall</div><div class="summary-total number-font">' + escapeHtml(String(total === '' ? '-' : total)) + ' / ' + getCurrentTotalMax() + '</div><div class="subtle">' + (percent === '' ? 'No percent yet' : '(' + percent + '%)') + '</div></div>' +
+            '<button class="secondary-btn flag-btn ' + (student.flagged ? 'active' : '') + '" id="flagBtn"><i class="ti ti-flag"></i> ' + (student.flagged ? 'Flagged' : 'Flag') + '</button>' +
+          '</div>' +
+          ((percent !== '' && Number(percent) < getPrimeTriggerThreshold()) ? '<div class="prime-notice">PRIME triggers below ' + getPrimeTriggerThreshold() + '% when the threshold is set to ' + getPrimeDisplayThreshold() + '%.</div>' : '') +
+          '<div>' +
+            '<div class="eyebrow" style="margin-bottom:0.55rem;">Comment Chips</div>' +
+            '<div class="comment-chip-row">' +
+              COMMENT_CHIPS.map(function(label) { return '<button type="button" class="comment-chip" data-comment-chip="' + escapeAttr(label) + '">' + escapeHtml(label) + '</button>'; }).join('') +
+            '</div>' +
+          '</div>' +
+          '<label class="score-field"><span>Overall Comment</span><textarea class="field-textarea" id="overallCommentInput" placeholder="Teacher feedback...">' + escapeHtml(student.comment || '') + '</textarea></label>' +
+          '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;">' +
+            '<button class="primary-btn" id="saveNextBtn"><i class="ti ti-arrow-right"></i> Save & Next</button>' +
+            '<button class="secondary-btn" id="exportCsvBtn"><i class="ti ti-download"></i> Export CSV</button>' +
+          '</div>' +
+        '</article>';
+    }
+
+    function renderPrimePanel(student) {
+      var total = Number(student.totalScore) || computeLocalTotal(student.scores) || 0;
+      var pointsNeeded = getPointsNeededForPrimeGoal(total);
+      return '' +
+        '<article class="prime-panel ' + (state.primeMode ? '' : 'hidden') + '">' +
+          '<div class="prime-panel-head">' +
+            '<div><span class="rubric-title"><span class="rubric-icon"><i class="ti ti-pencil-plus"></i></span>PRIME Revision</span><p class="section-note">Private workflow for students who trigger PRIME below ' + getPrimeTriggerThreshold() + '%.</p></div>' +
+            '<div class="points-callout">Needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%</div>' +
+          '</div>' +
+          '<div class="prime-field-grid">' +
+            '<label><span>PRIME Status</span><select class="field-select" id="primeStatusSelect">' +
+              ['Not Needed', 'Needs PRIME', 'Printed', 'Completed'].map(function(opt) { return '<option value="' + escapeAttr(opt) + '"' + (student.primeStatus === opt ? ' selected' : '') + '>' + escapeHtml(opt) + '</option>'; }).join('') +
+            '</select></label>' +
+            '<label><span>Focus Areas</span><textarea class="field-textarea" id="primeFocusInput">' + escapeHtml(student.primeFocusAreas || '') + '</textarea></label>' +
+            '<label><span>PRIME Comment</span><textarea class="field-textarea" id="primeCommentInput">' + escapeHtml(student.primeComment || '') + '</textarea></label>' +
+            '<button class="secondary-btn" type="button" id="printPrimeBtn"><i class="ti ti-printer"></i> Print PRIME Sheet</button>' +
+          '</div>' +
+        '</article>';
+    }
+
+    function bindRubricEvents() {
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('.rubric-card-head.collapsible')).forEach(function(head) {
+        head.addEventListener('click', function() {
+          var key = head.parentNode.getAttribute('data-criterion');
+          state.rubricCollapsed[key] = !(state.rubricCollapsed[key] === false);
+          renderRubric(state.selectedStudent);
+        });
+      });
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-band-score]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var key = button.getAttribute('data-criterion-key');
+          var value = Number(button.getAttribute('data-band-score'));
+          state.selectedStudent.scores[key] = value;
+          state.rubricCollapsed[key] = false;
+          renderRubric(state.selectedStudent);
+          setTimeout(function() {
+            state.rubricCollapsed[key] = true;
+            renderRubric(state.selectedStudent);
+          }, 200);
+          scheduleSave();
+        });
+      });
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-score-input]')).forEach(function(input) {
+        input.addEventListener('change', function() {
+          var key = input.getAttribute('data-score-input');
+          state.selectedStudent.scores[key] = input.value === '' ? '' : Number(input.value);
+          scheduleSave();
+        });
+      });
+      var overallCommentInput = document.getElementById('overallCommentInput');
+      if (overallCommentInput) {
+        overallCommentInput.addEventListener('input', function() {
+          state.selectedStudent.comment = overallCommentInput.value;
+          scheduleSave();
+        });
+      }
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-comment-chip]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var text = button.getAttribute('data-comment-chip');
+          var current = state.selectedStudent.comment || '';
+          state.selectedStudent.comment = current ? current + '\n' + text : text;
+          renderRubric(state.selectedStudent);
+          scheduleSave();
+        });
+      });
+      var flagBtn = document.getElementById('flagBtn');
+      if (flagBtn) {
+        flagBtn.addEventListener('click', function() {
+          state.selectedStudent.flagged = !state.selectedStudent.flagged;
+          renderRubric(state.selectedStudent);
+          scheduleSave();
+        });
+      }
+      var saveNextBtn = document.getElementById('saveNextBtn');
+      if (saveNextBtn) saveNextBtn.addEventListener('click', async function() { await saveCurrentStudent(); moveStudent(1); });
+      var exportBtn = document.getElementById('exportCsvBtn');
+      if (exportBtn) exportBtn.addEventListener('click', exportCsv);
+      var primeStatus = document.getElementById('primeStatusSelect');
+      var primeFocus = document.getElementById('primeFocusInput');
+      var primeComment = document.getElementById('primeCommentInput');
+      var printPrimeBtn = document.getElementById('printPrimeBtn');
+      [primeStatus, primeFocus, primeComment].forEach(function(field) {
+        if (!field) return;
+        field.addEventListener(field.tagName === 'SELECT' ? 'change' : 'input', debouncePrimeSave);
+        field.addEventListener('blur', savePrimeDataNow);
+      });
+      if (printPrimeBtn) printPrimeBtn.addEventListener('click', printPrimeSheet);
+    }
+
+    function scheduleSave() {
+      state.dirty = true;
+      setSaveState('Saving', 'saving');
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(saveCurrentStudent, 800);
+    }
+
+    async function saveCurrentStudent() {
+      if (!state.selectedStudent) return;
+      if (state.isSaving) {
+        // A save is already in flight — reschedule and wait for it to land
+        clearTimeout(state.saveTimer);
+        state.saveTimer = setTimeout(saveCurrentStudent, 600);
+        return;
+      }
+      state.isSaving = true;
+      try {
+        var payload = {
+          action: 'saveGrade',
+          studentId: state.selectedStudent.studentId,
+          scores: state.selectedStudent.scores,
+          comment: state.selectedStudent.comment || '',
+          flagged: !!state.selectedStudent.flagged,
+          vocabFound: state.selectedStudent.vocabFound || [],
+          vocabMissing: state.selectedStudent.vocabMissing || []
+        };
+        var response = await apiPost(payload);
+        if (!response.ok) return showError(response.message || 'Unable to save.');
+        state.selectedStudent = response.student;
+        mergeStudentSummary(response.student);
+        state.summary = response.summary || state.summary;
+        state.dirty = false;
+        renderSummary();
+        renderStudentNav();
+        renderStudentDetails();
+        setSaveState('Saved', 'saved');
+        showToast('Saved.');
+      } catch (err) {
+        setSaveState('Error', 'error');
+        showError(err.message || String(err));
+      } finally {
+        state.isSaving = false;
+      }
+    }
+
+    function debouncePrimeSave() {
+      clearTimeout(state.primeSaveTimer);
+      state.primeSaveTimer = setTimeout(savePrimeDataNow, 300);
+    }
+
+    async function savePrimeDataNow() {
+      if (!state.selectedStudent || !state.primeMode) return;
+      var primeStatus = document.getElementById('primeStatusSelect');
+      var primeFocus = document.getElementById('primeFocusInput');
+      var primeComment = document.getElementById('primeCommentInput');
+      if (!primeStatus) return;
+      try {
+        var response = await apiPost({
+          action: 'savePrime',
+          studentId: state.selectedStudent.studentId,
+          primeStatus: primeStatus.value,
+          primeComment: primeComment ? primeComment.value : '',
+          primeFocusAreas: primeFocus ? primeFocus.value : ''
+        });
+        if (!response.ok) return showError(response.message || 'Unable to save PRIME data.');
+        state.selectedStudent = response.student;
+        mergeStudentSummary(response.student);
+        renderStudentNav();
+        renderStudentDetails();
+        setSaveState('Saved', 'saved');
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    async function toggleNoSubmission() {
+      if (!state.selectedStudent) return;
+      var next = state.selectedStudent.status !== 'No Submission';
+      try {
+        var response = await apiPost({
+          action: 'markNoSubmission',
+          studentId: state.selectedStudent.studentId,
+          noSubmission: next
+        });
+        if (!response.ok) return showError(response.message || 'Unable to update submission status.');
+        state.selectedStudent = response.student;
+        mergeStudentSummary(response.student);
+        state.summary = response.summary || state.summary;
+        renderSummary();
+        renderStudentNav();
+        renderStudentDetails();
+        showToast(next ? 'Marked no submission.' : 'Cleared no submission.');
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function togglePrimeMode() {
+      var entering = !state.primeMode;
+      if (entering && !state.students.some(function(student) { return student.primeEligible === 'YES'; })) {
+        showToast('No students are currently PRIME eligible.');
+        return;
+      }
+      state.primeMode = entering;
+      els.primeModeBtn.classList.toggle('active', state.primeMode);
+      els.primeModeBtn.innerHTML = '<i class="ti ti-pencil-plus"></i> ' + (state.primeMode ? 'PRIME Mode' : 'PRIME');
+      renderStudentNav();
+      if (state.primeMode) {
+        var firstPrime = visibleStudents()[0];
+        if (firstPrime) selectStudent(firstPrime.studentId);
+      } else if (state.selectedStudent) {
+        renderStudentDetails();
+      }
+    }
+
+    async function enterAnalyticsMode() {
+      closeSettingsMenu();
+      state.mode = 'analytics';
+      updateModeVisibility();
+      try {
+        var response = await apiGet('getAnalytics');
+        if (!response.ok) return showError(response.message || 'Unable to load analytics.');
+        state.analytics = response;
+        renderAnalytics(response);
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function enterSchoologyMode() {
+      closeSettingsMenu();
+      state.mode = 'schoology';
+      updateModeVisibility();
+      renderSchoology();
+    }
+
+    function renderAnalytics(data) {
+      var summary = data.summary || {};
+      var vocabStats = data.vocabStats || {};
+      var html = '' +
+        '<article class="analytics-card"><h4 style="margin:0;">Progress</h4><p class="subtle">' + summary.complete + '/' + summary.total + ' complete • ' + summary.inProgress + ' in progress • ' + summary.noSubmission + ' no submission</p></article>' +
+        '<article class="analytics-card"><h4 style="margin:0;">PRIME</h4><p class="subtle">' + (data.primeCount || 0) + ' students currently qualify for PRIME.</p></article>' +
+        '<article class="analytics-card"><h4 style="margin:0;">Average Score</h4><p class="subtle">' + (data.averageScore === '' ? '-' : data.averageScore + ' / ' + getCurrentTotalMax()) + '</p></article>' +
+        '<article class="analytics-card"><h4 style="margin:0;">Vocabulary Coverage</h4><p class="subtle">' + (vocabStats.allSix || 0) + ' students used all 6 terms • ' + (vocabStats.missingAny || 0) + ' students missing 1+ term</p></article>';
+      (data.criterionAverages || []).forEach(function(item) {
+        html += '<article class="analytics-card"><h4 style="margin:0;">' + escapeHtml(item.title) + '</h4><p class="subtle">Average: ' + (item.average === '' ? '-' : item.average) + '/' + escapeHtml(String(item.max)) + '</p>' + renderBandDistribution(item.bandCounts) + '</article>';
+      });
+      html += '<article class="analytics-card" style="grid-column:1/-1;"><h4 style="margin:0 0 0.6rem;">By Period</h4>' + renderByPeriodTable(data.byPeriod || []) + '</article>';
+      els.analyticsGrid.innerHTML = html;
+    }
+
+    function renderBandDistribution(bandCounts) {
+      var labels = Object.keys(bandCounts || {});
+      if (!labels.length) return '<p class="subtle">No completed students yet.</p>';
+      var total = labels.reduce(function(sum, label) { return sum + Number(bandCounts[label] || 0); }, 0);
+      if (!total) return '<p class="subtle">No completed students yet.</p>';
+      var colors = ['#0f9d58', '#4a40e0', '#f59e0b', '#b41340', '#607d8b', '#9c27b0'];
+      return '<div class="band-distribution">' + labels.map(function(label, index) {
+        var count = Number(bandCounts[label] || 0);
+        return '<span title="' + escapeAttr(label + ': ' + count) + '" style="flex:' + Math.max(count, 0.2) + ';background:' + colors[index % colors.length] + ';"></span>';
+      }).join('') + '</div><div class="subtle" style="margin-top:0.6rem;">' + labels.map(function(label) { return escapeHtml(label) + ': ' + escapeHtml(String(bandCounts[label] || 0)); }).join(' • ') + '</div>';
+    }
+
+    function renderByPeriodTable(rows) {
+      if (!rows.length) return '<p class="subtle">No period data yet.</p>';
+      return '<table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:0.5rem;">Period</th><th style="text-align:left;padding:0.5rem;">Complete</th><th style="text-align:left;padding:0.5rem;">In Progress</th><th style="text-align:left;padding:0.5rem;">No Submission</th><th style="text-align:left;padding:0.5rem;">PRIME</th><th style="text-align:left;padding:0.5rem;">Average</th></tr></thead><tbody>' + rows.map(function(row) {
+        return '<tr><td style="padding:0.5rem;border-top:1px solid var(--hairline);">P' + escapeHtml(row.period) + '</td><td style="padding:0.5rem;border-top:1px solid var(--hairline);">' + row.complete + '/' + row.total + '</td><td style="padding:0.5rem;border-top:1px solid var(--hairline);">' + row.inProgress + '</td><td style="padding:0.5rem;border-top:1px solid var(--hairline);">' + row.noSubmission + '</td><td style="padding:0.5rem;border-top:1px solid var(--hairline);">' + row.primeCount + '</td><td style="padding:0.5rem;border-top:1px solid var(--hairline);">' + (row.average === '' ? '-' : row.average) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    }
+
+    function renderSchoology() {
+      var students = schoologyStudents();
+      var rowLines = students.map(buildSchoologyRowLine);
+      els.schoologySummary.textContent = students.length + ' row' + (students.length === 1 ? '' : 's') + ' ready for the current teacher view.';
+      els.schoologyRowsOutput.textContent = rowLines.length
+        ? ['Student Name\tScore\tComment'].concat(rowLines).join('\n')
+        : 'No students are available in this view yet.';
+      els.schoologyList.innerHTML = students.length ? students.map(function(student) {
+        var score = formatSchoologyScore(student);
+        var comment = buildSchoologyComment(student);
+        return '' +
+          '<article class="schoology-card">' +
+            '<div class="schoology-row">' +
+              '<div>' +
+                '<div class="schoology-head">' +
+                  '<div>' +
+                    '<strong>' + escapeHtml(student.name || 'Student') + '</strong>' +
+                    '<p class="section-note">Period ' + escapeHtml(student.period || '-') + ' • ' + escapeHtml(student.status || 'Ungraded') + '</p>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="schoology-meta">' +
+                  '<span class="status-badge" data-status="' + escapeAttr(student.status || 'Ungraded') + '">' + escapeHtml(student.status || 'Ungraded') + '</span>' +
+                  '<span class="selected-band-chip">' + escapeHtml(score) + '</span>' +
+                  (student.primeEligible === 'YES' ? '<span class="prime-badge"><i class="ti ti-pencil-plus"></i> ' + escapeHtml(student.primeStatus || 'Needs PRIME') + '</span>' : '') +
+                '</div>' +
+                '<div class="schoology-comment">' + escapeHtml(comment) + '</div>' +
+              '</div>' +
+              '<div class="schoology-row-copy">' +
+                '<button class="secondary-btn" type="button" data-schoology-copy-row="' + escapeAttr(buildSchoologyRowLine(student)) + '"><i class="ti ti-copy"></i> Copy Row</button>' +
+                '<button class="secondary-btn" type="button" data-schoology-copy-comment="' + escapeAttr(buildSchoologyCommentOnlyLine(student)) + '"><i class="ti ti-message"></i> Copy Comment</button>' +
+              '</div>' +
+            '</div>' +
+          '</article>';
+      }).join('') : '<article class="schoology-card"><p class="section-note">No students are available in this view yet.</p></article>';
+      Array.prototype.slice.call(els.schoologyList.querySelectorAll('[data-schoology-copy-row]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          copyText(button.getAttribute('data-schoology-copy-row') || '', 'Schoology row copied.');
+        });
+      });
+      Array.prototype.slice.call(els.schoologyList.querySelectorAll('[data-schoology-copy-comment]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          copyText(button.getAttribute('data-schoology-copy-comment') || '', 'Schoology comment copied.');
+        });
+      });
+    }
+
+    async function savePrimeThresholdSetting() {
+      var value = Number(els.primeThresholdInput.value);
+      if (isNaN(value) || value < 1 || value > 100) {
+        showToast('Enter a PRIME threshold between 1 and 100.');
+        return;
+      }
+      try {
+        els.savePrimeThresholdBtn.disabled = true;
+        var response = await apiPost({ action: 'savePrimeSettings', primeThreshold: value });
+        if (!response.ok) return showError(response.message || 'Unable to save PRIME threshold.');
+        state.settings = response.settings || state.settings || {};
+        syncPrimeThresholdUi();
+        showToast('PRIME threshold saved.');
+        await loadAppData();
+      } catch (err) {
+        showError(err.message || String(err));
+      } finally {
+        els.savePrimeThresholdBtn.disabled = false;
+      }
+    }
+
+    function enterRubricEditorMode() {
+      closeSettingsMenu();
+      state.mode = 'rubricEditor';
+      updateModeVisibility();
+      renderRubricEditor();
+    }
+
+    function renderRubricEditor() {
+      els.rubricEditorBody.innerHTML = state.rubric.map(function(criterion, index) {
+        return '<article class="rubric-editor-card" data-criterion-key="' + escapeAttr(criterion.key) + '">' +
+          '<div class="rubric-editor-card-head">' +
+            '<input type="text" class="field-input rubric-editor-title-input" value="' + escapeAttr(criterion.title) + '">' +
+            '<label style="display:flex;align-items:center;gap:0.4rem;"><input type="number" class="field-input rubric-editor-max-input" value="' + escapeAttr(criterion.max) + '" min="1" max="20" step="1"><span>/ pts</span></label>' +
+            '<span class="rubric-editor-key-badge">' + escapeHtml(criterion.key) + '</span>' +
+          '</div>' +
+          '<table class="rubric-editor-table"><thead><tr><th style="width:140px;">Band Label</th><th style="width:80px;">Points</th><th>Description</th><th style="width:60px;"></th></tr></thead><tbody>' +
+            criterion.bands.map(function(band) {
+              return '<tr class="rubric-editor-band-row">' +
+                '<td><input type="text" class="field-input band-label-input" value="' + escapeAttr(band.label) + '"></td>' +
+                '<td><input type="number" class="field-input band-score-input" min="0" value="' + escapeAttr(band.score) + '"></td>' +
+                '<td><textarea class="field-textarea band-text-input" rows="2">' + escapeHtml(band.text) + '</textarea></td>' +
+                '<td><div class="rubric-editor-band-actions"><button class="icon-btn delete-band-btn" type="button"><i class="ti ti-trash"></i></button></div></td>' +
+              '</tr>';
+            }).join('') +
+          '</tbody></table>' +
+          '<div><button class="secondary-btn rubric-editor-add-band" type="button"><i class="ti ti-plus"></i> Add Band</button></div>' +
+          '<div class="rubric-editor-criterion-actions">' +
+            '<button class="icon-btn move-up-btn" type="button"' + (index === 0 ? ' disabled' : '') + '><i class="ti ti-arrow-up"></i></button>' +
+            '<button class="icon-btn move-down-btn" type="button"' + (index === state.rubric.length - 1 ? ' disabled' : '') + '><i class="ti ti-arrow-down"></i></button>' +
+          '</div>' +
+        '</article>';
+      }).join('') + '<div class="rubric-totals-bar" id="rubricTotalsBar"></div>';
+      bindRubricEditorEvents();
+      updateRubricTotalsBar();
+    }
+
+    function bindRubricEditorEvents() {
+      Array.prototype.slice.call(els.rubricEditorBody.querySelectorAll('input, textarea')).forEach(function(field) {
+        field.addEventListener('input', markRubricDirty);
+      });
+      Array.prototype.slice.call(els.rubricEditorBody.querySelectorAll('.rubric-editor-add-band')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var tbody = button.parentNode.previousElementSibling.querySelector('tbody');
+          tbody.insertAdjacentHTML('beforeend', '<tr class="rubric-editor-band-row"><td><input type="text" class="field-input band-label-input" value=""></td><td><input type="number" class="field-input band-score-input" min="0" value="0"></td><td><textarea class="field-textarea band-text-input" rows="2"></textarea></td><td><div class="rubric-editor-band-actions"><button class="icon-btn delete-band-btn" type="button"><i class="ti ti-trash"></i></button></div></td></tr>');
+          renderRubricEditorFromDom();
+        });
+      });
+      Array.prototype.slice.call(els.rubricEditorBody.querySelectorAll('.delete-band-btn')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var tbody = button.closest('tbody');
+          if (tbody.querySelectorAll('.rubric-editor-band-row').length <= 1) return;
+          button.closest('.rubric-editor-band-row').remove();
+          markRubricDirty();
+          updateRubricTotalsBar();
+        });
+      });
+      Array.prototype.slice.call(els.rubricEditorBody.querySelectorAll('.move-up-btn')).forEach(function(button) {
+        button.addEventListener('click', function() { moveCriterionCard(button.closest('.rubric-editor-card'), -1); });
+      });
+      Array.prototype.slice.call(els.rubricEditorBody.querySelectorAll('.move-down-btn')).forEach(function(button) {
+        button.addEventListener('click', function() { moveCriterionCard(button.closest('.rubric-editor-card'), 1); });
+      });
+    }
+
+    function moveCriterionCard(card, direction) {
+      var sibling = direction < 0 ? card.previousElementSibling : card.nextElementSibling;
+      if (!sibling || !sibling.classList.contains('rubric-editor-card')) return;
+      if (direction < 0) els.rubricEditorBody.insertBefore(card, sibling);
+      else els.rubricEditorBody.insertBefore(sibling, card);
+      markRubricDirty();
+      renderRubricEditorFromDom();
+    }
+
+    function renderRubricEditorFromDom() {
+      var rubric = collectRubricFromEditor();
+      state.rubric = rubric;
+      renderRubricEditor();
+      markRubricDirty();
+    }
+
+    function collectRubricFromEditor() {
+      var rubric = [];
+      Array.prototype.slice.call(document.querySelectorAll('.rubric-editor-card')).forEach(function(card) {
+        var key = card.getAttribute('data-criterion-key');
+        var title = card.querySelector('.rubric-editor-title-input').value.trim();
+        var max = Number(card.querySelector('.rubric-editor-max-input').value);
+        var bands = [];
+        Array.prototype.slice.call(card.querySelectorAll('.rubric-editor-band-row')).forEach(function(row) {
+          bands.push({
+            label: row.querySelector('.band-label-input').value.trim(),
+            score: Number(row.querySelector('.band-score-input').value),
+            text: row.querySelector('.band-text-input').value.trim()
+          });
+        });
+        rubric.push({ key: key, title: title, max: max, bands: bands });
+      });
+      return rubric;
+    }
+
+    function validateRubricEditor(rubric) {
+      var errors = [];
+      var totalMax = 0;
+      rubric.forEach(function(criterion, i) {
+        if (!criterion.title.trim()) errors.push('Criterion ' + (i + 1) + ': title cannot be empty.');
+        var max = Number(criterion.max);
+        if (isNaN(max) || max < 1) errors.push((criterion.title || 'Criterion ' + (i + 1)) + ': max points must be at least 1.');
+        totalMax += isNaN(max) ? 0 : max;
+        if (!criterion.bands || criterion.bands.length === 0) errors.push((criterion.title || 'Criterion ' + (i + 1)) + ': must have at least one band.');
+        criterion.bands.forEach(function(band, j) {
+          if (!band.label.trim()) errors.push((criterion.title || 'Criterion ' + (i + 1)) + ' band ' + (j + 1) + ': label cannot be empty.');
+          var score = Number(band.score);
+          if (isNaN(score) || score < 0) errors.push((criterion.title || 'Criterion ' + (i + 1)) + ' band ' + (j + 1) + ': score must be 0 or higher.');
+          if (!band.text.trim()) errors.push((criterion.title || 'Criterion ' + (i + 1)) + ' band ' + (j + 1) + ': description cannot be empty.');
+        });
+      });
+      return { valid: errors.length === 0, errors: errors, totalMax: totalMax };
+    }
+
+    async function saveRubricFromEditor() {
+      var rubric = collectRubricFromEditor();
+      var validation = validateRubricEditor(rubric);
+      if (!validation.valid) {
+        els.rubricErrorBox.classList.remove('hidden');
+        els.rubricErrorBox.innerHTML = '<strong>Fix these rubric issues first:</strong><div class="error-list">' + validation.errors.map(function(err) { return '• ' + escapeHtml(err); }).join('<br>') + '</div>';
+        return;
+      }
+      els.rubricErrorBox.classList.add('hidden');
+      try {
+        var response = await apiPost({ action: 'saveRubric', rubric: rubric });
+        if (!response.ok) return showError(response.message || 'Unable to save rubric.');
+        state.rubric = response.rubric;
+        state.rubricDirty = false;
+        els.rubricSavePill.classList.add('hidden');
+        updateRubricTotalsBar();
+        showToast('Rubric saved.');
+        if (state.selectedStudent) renderRubric(state.selectedStudent);
+        renderRubricEditor();
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    function resetRubricDefaults() {
+      openConfirmModal({
+        eyebrow: 'Restore defaults',
+        title: 'Reset rubric to defaults?',
+        body: '<p class="subtle">This will discard all custom rubric changes and restore the original Iran Summative rubric. This cannot be undone.</p>',
+        okText: 'Reset rubric',
+        action: async function() {
+          try {
+            var response = await apiPost({ action: 'saveRubric', rubric: JSON.parse(JSON.stringify(DEFAULT_RUBRIC)) });
+            if (!response.ok) return showError(response.message || 'Unable to reset rubric.');
+            state.rubric = response.rubric;
+            state.rubricDirty = false;
+            els.rubricSavePill.classList.add('hidden');
+            renderRubricEditor();
+            if (state.selectedStudent) renderRubric(state.selectedStudent);
+            showToast('Rubric reset.');
+          } catch (err) {
+            showError(err.message || String(err));
+          }
+        }
+      });
+    }
+
+    function markRubricDirty() {
+      state.rubricDirty = true;
+      els.rubricSavePill.classList.remove('hidden');
+      els.rubricSavePill.classList.add('rubric-save-pill-unsaved');
+      updateRubricTotalsBar();
+    }
+
+    function updateRubricTotalsBar() {
+      var totalsBar = document.getElementById('rubricTotalsBar');
+      if (!totalsBar) return;
+      var rubric = document.querySelectorAll('.rubric-editor-card').length ? collectRubricFromEditor() : state.rubric;
+      var validation = validateRubricEditor(rubric);
+      var total = validation.totalMax;
+      totalsBar.innerHTML = 'Total Points: ' + total + (total !== 20
+        ? '<span class="total-warn"><i class="ti ti-alert-triangle"></i> Total is ' + total + ' pts, not 20. Rubric will save but grader scores may be inconsistent.</span>'
+        : '<span class="total-ok"><i class="ti ti-circle-check"></i> Total: 20 pts</span>');
+    }
+
+    function returnToGradingMode() {
+      closeSettingsMenu();
+      if (state.mode === 'rubricEditor' && state.rubricDirty) {
+        openConfirmModal({
+          eyebrow: 'Unsaved changes',
+          title: 'Discard rubric edits and return to grading?',
+          body: '<p class="subtle">You have unsaved rubric changes. Discard and return to grading?</p>',
+          okText: 'Discard changes',
+          action: function() {
+            state.rubricDirty = false;
+            els.rubricSavePill.classList.add('hidden');
+            state.mode = 'grading';
+            updateModeVisibility();
+            if (state.selectedStudent) renderStudentDetails();
+          }
+        });
+        return;
+      }
+      state.mode = 'grading';
+      updateModeVisibility();
+      if (state.selectedStudent) renderStudentDetails();
+    }
+
+    function updateModeVisibility() {
+      els.gradingContent.classList.toggle('hidden', state.mode !== 'grading' || !state.selectedStudent);
+      els.analyticsContent.classList.toggle('hidden', state.mode !== 'analytics');
+      els.schoologyContent.classList.toggle('hidden', state.mode !== 'schoology');
+      els.rubricEditorContent.classList.toggle('hidden', state.mode !== 'rubricEditor');
+      els.emptyState.classList.toggle('hidden', state.mode !== 'grading' || !!state.selectedStudent);
+      els.returnGradingBtn.classList.toggle('hidden', state.mode === 'grading');
+    }
+
+    function renderEmpty() {
+      state.selectedStudent = null;
+      updateModeVisibility();
+    }
+
+    function moveStudent(direction) {
+      var students = visibleStudents();
+      var index = students.findIndex(function(student) { return student.studentId === state.selectedStudentId; });
+      if (index < 0) return;
+      var next = students[index + direction];
+      if (next) selectStudent(next.studentId);
+    }
+
+    function selectNextUngraded() {
+      var target = visibleStudents().find(function(student) {
+        return (student.status === 'Ungraded' || student.status === 'In Progress') && student.hasEssay;
+      }) || visibleStudents().find(function(student) {
+        return student.status === 'Ungraded' || student.status === 'In Progress';
+      });
+      if (!target) return showToast('No ungraded students remain in this view.');
+      selectStudent(target.studentId);
+    }
+
+    function mergeStudentSummary(student) {
+      var index = state.students.findIndex(function(item) { return item.studentId === student.studentId; });
+      if (index < 0) return;
+      state.students[index] = {
+        studentId: student.studentId,
+        name: student.name,
+        sortName: student.sortName,
+        period: student.period,
+        teacher: student.teacher,
+        email: student.email,
+        status: student.status,
+        scores: student.scores,
+        totalScore: student.totalScore,
+        percent: student.percent,
+        flagged: student.flagged,
+        primeEligible: student.primeEligible,
+        primeStatus: student.primeStatus,
+        comment: student.comment,
+        vocabFound: student.vocabFound,
+        vocabMissing: student.vocabMissing,
+        hasEssay: !!student.essay
+      };
+    }
+
+    async function printPrimeSheet() {
+      if (!state.selectedStudent) return;
+      var win = window.open('', '_blank');
+      if (!win) return showToast('Pop-up blocked. Allow pop-ups to print.');
+      var html = buildPrimeSheetHtml();
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      try {
+        var response = await apiPost({ action: 'markPrimePrinted', studentId: state.selectedStudent.studentId });
+        if (response.ok) {
+          state.selectedStudent = response.student;
+          mergeStudentSummary(response.student);
+          renderStudentNav();
+          renderStudentDetails();
+        }
+      } catch (err) {}
+    }
+
+    function buildPrimeSheetHtml() {
+      var student = state.selectedStudent;
+      var total = Number(student.totalScore) || computeLocalTotal(student.scores) || 0;
+      var percent = student.percent === '' ? round1(total / getCurrentTotalMax() * 100) : student.percent;
+      var pointsNeeded = getPointsNeededForPrimeGoal(total);
+      return '<!doctype html><html><head><meta charset="utf-8"><title>PRIME Revision</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;color:#203044}.top{background:#203044;color:#fff;padding:18px 24px}.sheet{padding:28px 34px}h1{margin:0 0 6px;font-size:34px}.box{background:#f8faff;border-left:5px solid #4a40e0;border-radius:8px;padding:14px 16px;margin:18px 0}.rules{background:#fff8e1;border-left-color:#f59e0b}table{border-collapse:collapse;width:100%;margin-top:20px}td,th{border:1px solid #dce9ff;padding:12px;vertical-align:top}th{text-align:left;background:#eaf1ff}@media print{.top{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="top"><strong>Iran Summative PRIME Revision</strong></div><main class="sheet"><h1>' + escapeHtml(student.name) + '</h1><p>Period ' + escapeHtml(student.period) + ' • ' + escapeHtml(state.teacher.name) + '</p><p><strong>Score:</strong> ' + total + '/' + getCurrentTotalMax() + ' (' + percent + '%) • Needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%</p><p><strong>PRIME Trigger:</strong> Students below ' + getPrimeTriggerThreshold() + '% are flagged for PRIME so borderline rounding stays out of the way.</p><table><thead><tr><th>Criterion</th><th>Score</th><th>Comment</th></tr></thead><tbody>' + state.rubric.map(function(criterion) {
+        return '<tr><td>' + escapeHtml(criterion.title) + '</td><td>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</td><td>' + escapeHtml(student.comment || '') + '</td></tr>';
+      }).join('') + '</tbody></table><section class="box"><strong>Focus Areas</strong><p>' + escapeHtml((document.getElementById('primeFocusInput') || {}).value || student.primeFocusAreas || '') + '</p></section><section class="box"><strong>PRIME Comment</strong><p>' + escapeHtml((document.getElementById('primeCommentInput') || {}).value || student.primeComment || '') + '</p></section><section class="box rules"><strong>Rules</strong><p>Complete this revision using your class notes and teacher feedback. Do not use AI.</p></section></main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},600)})<\/script></body></html>';
+    }
+
+    function toggleHighlightMode() {
+      state.highlightMode = !state.highlightMode;
+      els.highlightToggleBtn.classList.toggle('active', state.highlightMode);
+      els.highlightToggleBtn.innerHTML = '<i class="ti ti-highlighter"></i> ' + (state.highlightMode ? 'Highlight On' : 'Highlight');
+    }
+
+    function applyManualHighlightIfNeeded() {
+      if (!state.highlightMode) return;
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      if (!els.essayContent.contains(sel.anchorNode)) return;
+      try {
+        var range = sel.getRangeAt(0);
+        var mark = document.createElement('mark');
+        mark.className = 'essay-highlight';
+        range.surroundContents(mark);
+        sel.removeAllRanges();
+      } catch (err) {}
+    }
+
+    function clearManualHighlights() {
+      Array.prototype.slice.call(els.essayContent.querySelectorAll('mark.essay-highlight')).forEach(function(mark) {
+        var parent = mark.parentNode;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+        parent.normalize();
+      });
+    }
+
+    function handleRosterFile(event) {
+      var file = event.target.files && event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(loadEvent) {
+        try {
+          var wb = XLSX.read(loadEvent.target.result, { type: 'array' });
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          state.rosterRows = rows.map(function(row) {
+            var period = String(row['Period'] || '').trim();
+            return {
+              studentId: String(row['ID'] || '').trim(),
+              name: (String(row['First Name'] || '').trim() + ' ' + String(row['Last Name'] || '').trim()).trim(),
+              sortName: (String(row['Last Name'] || '').trim() + ', ' + String(row['First Name'] || '').trim()).trim(),
+              period: period,
+              teacher: TEACHER_KEY,
+              email: String(row['Email'] || '').trim()
+            };
+          }).filter(function(student) {
+            return state.teacher.periods.indexOf(student.period) > -1 && student.studentId;
+          });
+          state.setupWizard.rosterParsed = !!state.rosterRows.length;
+          state.setupWizard.rosterError = state.rosterRows.length ? '' : 'No matching students found in that roster file.';
+          els.rosterPreview.textContent = state.rosterRows.length + ' students found (' + state.teacher.periods.map(function(p) { return 'Period ' + p; }).join(', ') + ').\n\n' + state.rosterRows.slice(0, 15).map(function(student) { return student.name + ' • P' + student.period; }).join('\n');
+          renderSetupWizard();
+        } catch (err) {
+          state.setupWizard.rosterParsed = false;
+          state.setupWizard.rosterError = 'Unable to parse roster file.';
+          renderSetupWizard();
+          showError('Unable to parse roster file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function handleEssayFile(event) {
+      var file = event.target.files && event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(loadEvent) {
+        try {
+          var parsed = parseCSVFull(loadEvent.target.result);
+          state.essayRows = parsed.slice(1).map(function(row) {
+            return { name: row[0] || '', essay: row[1] || '' };
+          }).filter(function(entry) { return entry.name; });
+          state.setupWizard.essaysParsed = !!state.essayRows.length;
+          state.setupWizard.essayError = state.essayRows.length ? '' : 'No submission rows were found in that CSV.';
+          els.essayPreview.textContent = state.essayRows.length + ' submissions found.\n\n' + state.essayRows.slice(0, 12).map(function(entry) { return entry.name; }).join('\n');
+          renderSetupWizard();
+        } catch (err) {
+          state.setupWizard.essaysParsed = false;
+          state.setupWizard.essayError = 'Unable to parse submissions CSV.';
+          renderSetupWizard();
+          showError('Unable to parse submissions CSV.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function confirmRosterUpload() {
+      if (!state.rosterRows.length) return showToast('Choose a roster file first.');
+      openConfirmModal({
+        eyebrow: 'Batch roster upload',
+        title: 'Upload roster to shared sheet?',
+        body: '<p class="subtle">This will upsert ' + state.rosterRows.length + ' students into the shared sheet. Continue?</p><div class="setup-preview">' + state.rosterRows.map(function(student) { return escapeHtml(student.name + ' • P' + student.period + ' • ' + student.studentId); }).join('<br>') + '</div>',
+        okText: 'Confirm roster upload',
+        action: uploadRosterNow
+      });
+    }
+
+    async function uploadRosterNow() {
+      try {
+        var response = await apiPost({ action: 'uploadRoster', students: state.rosterRows });
+        if (!response.ok) return showError(response.message || 'Unable to upload roster.');
+        state.setupWizard.rosterUploaded = true;
+        state.setupWizard.rosterError = '';
+        els.rosterUploadStatus.textContent = 'Roster uploaded successfully: ' + response.upserted + ' students added or updated.';
+        showToast('Roster uploaded: ' + response.upserted + ' students.');
+        loadAppData();
+      } catch (err) {
+        state.setupWizard.rosterUploaded = false;
+        state.setupWizard.rosterError = err.message || String(err);
+        els.rosterUploadStatus.textContent = 'Roster upload failed. Check the confirmation list and try again.';
+        renderSetupWizard();
+        showError(err.message || String(err));
+      }
+    }
+
+    function confirmEssayUpload() {
+      if (!state.essayRows.length) return showToast('Choose a submissions CSV first.');
+      var matched = previewEssayMatches(state.essayRows, state.rosterRows.length ? state.rosterRows : state.students);
+      openConfirmModal({
+        eyebrow: 'Batch essay upload',
+        title: 'Upload matched essays to shared sheet?',
+        body: '<p class="subtle">' + matched.matched.length + ' essays matched. ' + matched.unmatched.length + ' unmatched are listed below. Continue?</p><div class="setup-preview"><strong>Matched</strong><br>' + matched.matched.map(escapeHtml).join('<br>') + '<br><br><strong>Unmatched</strong><br>' + (matched.unmatched.length ? matched.unmatched.map(escapeHtml).join('<br>') : 'None') + '</div>',
+        okText: 'Confirm essay upload',
+        action: uploadEssaysNow
+      });
+    }
+
+    async function uploadEssaysNow() {
+      try {
+        var response = await apiPost({ action: 'uploadEssays', essays: state.essayRows });
+        if (!response.ok) return showError(response.message || 'Unable to upload essays.');
+        state.setupWizard.essaysUploaded = !!response.matched;
+        state.setupWizard.essayError = response.matched ? '' : 'No submissions matched the roster.';
+        els.essayUploadStatus.textContent = response.matched + ' submissions matched. ' + (response.unmatched || []).length + ' unmatched.';
+        showToast('Essays uploaded: ' + response.matched + ' matched.');
+        loadAppData();
+      } catch (err) {
+        state.setupWizard.essaysUploaded = false;
+        state.setupWizard.essayError = err.message || String(err);
+        els.essayUploadStatus.textContent = 'Submission upload failed. Review the match preview and try again.';
+        renderSetupWizard();
+        showError(err.message || String(err));
+      }
+    }
+
+    function previewEssayMatches(essays, students) {
+      var normalized = {};
+      (students || []).forEach(function(student) {
+        var name = student.name || '';
+        var sortName = student.sortName || sortName(name);
+        normalized[normalizeForMatch(name)] = true;
+        normalized[normalizeForMatch(sortName)] = true;
+      });
+      var matched = [];
+      var unmatched = [];
+      essays.forEach(function(entry) {
+        if (normalized[normalizeForMatch(entry.name)] || normalized[normalizeForMatch(sortName(entry.name))]) matched.push(entry.name);
+        else unmatched.push(entry.name);
+      });
+      return { matched: matched, unmatched: unmatched };
+    }
+
+    function exportCsv() {
+      var header = ['Name', 'Sort Name', 'Period', 'Teacher', 'Email', 'Claim', 'Evidence', 'Reasoning', 'Mechanics', 'Total', 'Percent', 'Status', 'Flagged', 'PRIME Eligible', 'PRIME Status', 'Vocab Found', 'Vocab Missing', 'Comment'];
+      var rows = [header].concat(visibleStudents().map(function(student) {
+        return [
+          student.name || '',
+          student.sortName || '',
+          student.period || '',
+          state.teacherKey,
+          student.email || '',
+          valueForCsv(student.scores ? student.scores.claim : (state.selectedStudent && state.selectedStudent.studentId === student.studentId ? state.selectedStudent.scores.claim : '')),
+          valueForCsv(student.scores ? student.scores.evidence : (state.selectedStudent && state.selectedStudent.studentId === student.studentId ? state.selectedStudent.scores.evidence : '')),
+          valueForCsv(student.scores ? student.scores.reasoning : (state.selectedStudent && state.selectedStudent.studentId === student.studentId ? state.selectedStudent.scores.reasoning : '')),
+          valueForCsv(student.scores ? student.scores.mechanics : (state.selectedStudent && state.selectedStudent.studentId === student.studentId ? state.selectedStudent.scores.mechanics : '')),
+          student.totalScore === '' ? '' : student.totalScore,
+          student.percent === '' ? '' : student.percent,
+          student.status || '',
+          student.flagged ? 'Yes' : 'No',
+          student.primeEligible === 'YES' ? 'Yes' : 'No',
+          student.primeStatus || '',
+          Array.isArray(student.vocabFound) ? student.vocabFound.join(', ') : (student.vocabFound || ''),
+          Array.isArray(student.vocabMissing) ? student.vocabMissing.join(', ') : (student.vocabMissing || ''),
+          state.selectedStudent && state.selectedStudent.studentId === student.studentId ? (state.selectedStudent.comment || '') : (student.comment || '')
+        ];
+      }));
+      var csv = rows.map(function(row) {
+        return row.map(function(value) {
+          var cell = String(value == null ? '' : value).replace(/"/g, '""');
+          return '"' + cell + '"';
+        }).join(',');
+      }).join('\n');
+      downloadText('iran_summative_' + (state.periodFilter === 'All' ? 'all' : 'p' + state.periodFilter) + '_' + new Date().toISOString().slice(0, 10) + '.csv', csv);
+    }
+
+    function handleKeys(event) {
+      if (event.key === 'Escape') {
+        if (!els.confirmModal.classList.contains('hidden')) return closeConfirmModal();
+        return closeSettingsMenu();
+      }
+      if (event.target.matches('textarea, input, select, button')) return;
+      if (state.mode !== 'grading') return;
+      if (event.key === 'ArrowRight') moveStudent(1);
+      if (event.key === 'ArrowLeft') moveStudent(-1);
+      if (event.key.toLowerCase() === 'f' && state.selectedStudent) {
+        state.selectedStudent.flagged = !state.selectedStudent.flagged;
+        renderRubric(state.selectedStudent);
+        scheduleSave();
+      }
+    }
+
+    function toggleSettingsMenu() {
+      els.settingsMenu.classList.toggle('hidden');
+      els.settingsBtn.setAttribute('aria-expanded', String(!els.settingsMenu.classList.contains('hidden')));
+    }
+
+    function closeSettingsMenu() {
+      els.settingsMenu.classList.add('hidden');
+      els.settingsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function openConfirmModal(options) {
+      state.confirmAction = options.action;
+      els.confirmEyebrow.textContent = options.eyebrow || 'Confirm';
+      els.confirmTitle.textContent = options.title || 'Confirm Action';
+      els.confirmBody.innerHTML = options.body || '';
+      els.confirmOk.textContent = options.okText || 'Continue';
+      els.confirmModal.classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      els.confirmModal.classList.add('hidden');
+      state.confirmAction = null;
+    }
+
+    function runConfirmAction() {
+      var action = state.confirmAction;
+      closeConfirmModal();
+      if (typeof action === 'function') action();
+    }
+
+    function initResizeHandle() {
+      if (!els.resizeHandle) return;
+      var storageKey = 'iran_rubric_width';
+      var grid = els.gradingContent;
+      var stored = Number(localStorage.getItem(storageKey));
+      if (!isNaN(stored)) document.documentElement.style.setProperty('--rubric-width', stored + 'px');
+      els.resizeHandle.addEventListener('pointerdown', function(event) {
+        if (window.innerWidth <= 1180) return;
+        event.preventDefault();
+        function move(pointerEvent) {
+          var rect = grid.getBoundingClientRect();
+          var nextWidth = Math.max(320, Math.min(rect.width * 0.65, rect.right - pointerEvent.clientX));
+          document.documentElement.style.setProperty('--rubric-width', nextWidth + 'px');
+          localStorage.setItem(storageKey, String(Math.round(nextWidth)));
+        }
+        function up() {
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+        }
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+      });
+    }
+
+    function setReaderMode(mode) {
+      closeSettingsMenu();
+      document.body.classList.remove('reader-beige', 'reader-dark');
+      if (mode === 'beige') document.body.classList.add('reader-beige');
+      if (mode === 'dark') document.body.classList.add('reader-dark');
+    }
+
+    function setSaveState(text, mode) {
+      els.saveState.className = 'save-pill' + (mode === 'saving' ? ' saving' : mode === 'error' ? ' error' : '');
+      els.saveState.innerHTML = '<i class="ti ' + (mode === 'error' ? 'ti-alert-triangle' : mode === 'saving' ? 'ti-device-floppy' : 'ti-check') + '"></i> ' + escapeHtml(text);
+    }
+
+    function clearError() {
+      els.errorBox.classList.add('hidden');
+      els.errorBox.textContent = '';
+    }
+
+    function showError(message) {
+      els.errorBox.classList.remove('hidden');
+      els.errorBox.textContent = message;
+      setSaveState('Error', 'error');
+      showToast(message);
+    }
+
+    var toastTimer = null;
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      els.toast.textContent = message;
+      els.toast.classList.remove('hidden');
+      toastTimer = setTimeout(function() { els.toast.classList.add('hidden'); }, 2200);
+    }
+
+    function dismissSplash() {
+      els.splashScreen.classList.add('hidden');
+    }
+
+    function getPrimeDisplayThreshold() {
+      var settings = state.settings || {};
+      var raw = settings['PRIME Threshold'];
+      if (raw === undefined || raw === '') raw = settings['Revise To Percent'];
+      if ((raw === undefined || raw === '') && settings['Visit Below Percent'] !== undefined && settings['Visit Below Percent'] !== '') {
+        raw = Number(settings['Visit Below Percent']) + 1;
+      }
+      var parsed = Number(raw);
+      if (isNaN(parsed)) return 85;
+      return Math.max(1, Math.min(100, Math.round(parsed)));
+    }
+
+    function getPrimeTriggerThreshold() {
+      return Math.max(0, getPrimeDisplayThreshold() - 1);
+    }
+
+    function getPointsNeededForPrimeGoal(total) {
+      return Math.max(0, Math.ceil((getPrimeDisplayThreshold() / 100) * getCurrentTotalMax()) - (Number(total) || 0));
+    }
+
+    function syncPrimeThresholdUi() {
+      if (!els.primeThresholdInput) return;
+      els.primeThresholdInput.value = String(getPrimeDisplayThreshold());
+      els.primeThresholdNote.textContent = 'PRIME triggers at 1% below this value to avoid borderline cases. Current trigger: below ' + getPrimeTriggerThreshold() + '%.';
+    }
+
+    function toggleSidebar() {
+      document.body.classList.toggle('sidebar-collapsed');
+      syncSidebarChrome();
+    }
+
+    function syncSidebarChrome() {
+      var collapsed = document.body.classList.contains('sidebar-collapsed');
+      els.sidebarToggle.innerHTML = '<i class="ti ' + (collapsed ? 'ti-layout-sidebar-left-expand' : 'ti-layout-sidebar-left-collapse') + '"></i>';
+      els.topbarMiniProgress.classList.toggle('hidden', !collapsed);
+      els.topbarMiniProgress.setAttribute('aria-hidden', collapsed ? 'false' : 'true');
+      syncMiniProgress();
+    }
+
+    function syncMiniProgress() {
+      var total = Number(state.summary.total) || 0;
+      var complete = Number(state.summary.complete) || 0;
+      var percent = total ? Math.round((complete / total) * 100) : 0;
+      var circumference = 2 * Math.PI * 28;
+      els.miniProgressLabel.textContent = percent + '%';
+      els.miniProgressCount.textContent = complete + '/' + total + ' graded';
+      els.miniProgressRing.style.strokeDasharray = String(circumference);
+      els.miniProgressRing.style.strokeDashoffset = String(circumference - (percent / 100) * circumference);
+    }
+
+    function syncSetupWizardFromData() {
+      if (!state.setupWizard.active) return;
+      state.setupWizard.rosterUploaded = !!state.students.length;
+      state.setupWizard.essaysUploaded = state.students.some(function(student) { return !!student.hasEssay; });
+      if (state.setupWizard.rosterUploaded && !state.setupWizard.rosterParsed) state.setupWizard.rosterParsed = true;
+      if (state.setupWizard.essaysUploaded && !state.setupWizard.essaysParsed) state.setupWizard.essaysParsed = true;
+    }
+
+    function renderSetupWizard() {
+      var wizard = state.setupWizard;
+      var startReady = wizard.rosterParsed && wizard.rosterUploaded && wizard.scraperOpened && wizard.essaysParsed && wizard.essaysUploaded;
+      updateSetupStep('setupStep1', 'setupStep1Status', wizard.rosterError ? 'error' : wizard.rosterParsed ? 'done' : 'active', wizard.rosterError || (wizard.rosterParsed ? 'Ready' : 'Choose file'));
+      updateSetupStep('setupStep2', 'setupStep2Status', wizard.rosterError ? 'error' : wizard.rosterUploaded ? 'done' : wizard.rosterParsed ? 'active' : 'pending', wizard.rosterError || (wizard.rosterUploaded ? 'Uploaded' : wizard.rosterParsed ? 'Upload next' : 'Waiting'));
+      updateSetupStep('setupStep3', 'setupStep3Status', wizard.rosterUploaded ? (wizard.scraperOpened ? 'done' : 'active') : 'pending', wizard.scraperOpened ? 'Opened' : wizard.rosterUploaded ? 'Open tool' : 'Waiting');
+      updateSetupStep('setupStep4', 'setupStep4Status', wizard.essayError ? 'error' : wizard.essaysParsed ? 'done' : wizard.scraperOpened ? 'active' : 'pending', wizard.essayError || (wizard.essaysParsed ? 'Ready' : wizard.scraperOpened ? 'Choose file' : 'Waiting'));
+      updateSetupStep('setupStep5', 'setupStep5Status', wizard.essayError ? 'error' : wizard.essaysUploaded ? 'done' : wizard.essaysParsed ? 'active' : 'pending', wizard.essayError || (wizard.essaysUploaded ? 'Uploaded' : wizard.essaysParsed ? 'Upload next' : 'Waiting'));
+      updateSetupStep('setupStep6', 'setupStep6Status', startReady ? 'active' : 'pending', startReady ? 'Ready' : 'Waiting');
+      els.uploadRosterBtn.disabled = !wizard.rosterParsed;
+      els.openScraperLink.classList.toggle('disabled-link', !wizard.rosterUploaded);
+      els.openScraperLink.setAttribute('aria-disabled', wizard.rosterUploaded ? 'false' : 'true');
+      els.essayFileInput.disabled = !wizard.scraperOpened;
+      els.uploadEssayBtn.disabled = !wizard.essaysParsed;
+      els.startGradingBtn.disabled = !startReady;
+      els.startPreview.textContent = startReady ? 'Everything is loaded. Open the grader when you are ready.' : 'Finish the first five steps to unlock the grader.';
+    }
+
+    function updateSetupStep(stepId, statusId, status, label) {
+      var step = els[stepId];
+      var badge = els[statusId];
+      if (!step || !badge) return;
+      step.classList.toggle('done', status === 'done');
+      step.classList.toggle('active', status === 'active');
+      step.classList.toggle('locked', status === 'pending');
+      badge.className = 'setup-step-status ' + status;
+      badge.textContent = label;
+    }
+
+    function handleScraperLink(event) {
+      if (!state.setupWizard.rosterUploaded) {
+        event.preventDefault();
+        return;
+      }
+      state.setupWizard.scraperOpened = true;
+      els.scraperPreview.textContent = 'Scraper tool opened. Download the CSV there, then come back here for Step 4.';
+      renderSetupWizard();
+    }
+
+    function finishSetupWizard() {
+      if (els.startGradingBtn.disabled) return;
+      state.setupWizard.active = false;
+      state.setupComplete = true;
+      els.setupOverlay.classList.add('hidden');
+      if (!state.selectedStudentId && visibleStudents().length) selectStudent(visibleStudents()[0].studentId);
+      else if (state.selectedStudent) renderStudentDetails();
+      else renderEmpty();
+    }
+
+    function schoologyStudents() {
+      return state.students.filter(function(student) {
+        return state.periodFilter === 'All' || String(student.period) === String(state.periodFilter);
+      });
+    }
+
+    function formatSchoologyScore(student) {
+      if (student.status === 'No Submission') return 'No submission';
+      if (student.totalScore === '' || student.totalScore === null || student.totalScore === undefined) return 'Not graded';
+      var pct = student.percent === '' || student.percent === null || student.percent === undefined ? '' : ' (' + student.percent + '%)';
+      return student.totalScore + '/' + getCurrentTotalMax() + pct;
+    }
+
+    function buildSchoologyComment(student) {
+      if (student.status === 'No Submission') return 'No submission received.';
+      var pieces = [];
+      var rubricSnapshot = buildSchoologyRubricSnapshot(student);
+      if (student.comment) pieces.push(student.comment);
+      if (!student.comment && rubricSnapshot) pieces.push(rubricSnapshot);
+      if (Array.isArray(student.vocabMissing) && student.vocabMissing.length) {
+        pieces.push('Missing vocab: ' + student.vocabMissing.join(', ') + '.');
+      }
+      if (student.primeEligible === 'YES') {
+        pieces.push(student.primeStatus && student.primeStatus !== 'Not Needed' ? 'PRIME: ' + student.primeStatus + '.' : 'Eligible for PRIME revision.');
+      }
+      if (!pieces.length) pieces.push(student.status === 'Complete' ? 'Graded.' : 'In progress.');
+      return pieces.join(' ');
+    }
+
+    function buildSchoologyRubricSnapshot(student) {
+      var labels = [];
+      state.rubric.forEach(function(criterion) {
+        var score = student.scores && student.scores[criterion.key];
+        if (score === '' || score === null || score === undefined) return;
+        var band = (criterion.bands || []).find(function(item) { return Number(item.score) === Number(score); });
+        labels.push(criterion.title + ': ' + (band ? band.label : score + '/' + criterion.max));
+      });
+      return labels.length ? labels.join(' • ') + '.' : '';
+    }
+
+    function buildSchoologyRowLine(student) {
+      return [student.name || '', formatSchoologyScore(student), buildSchoologyComment(student)].join('\t');
+    }
+
+    function buildSchoologyCommentOnlyLine(student) {
+      return [student.name || '', buildSchoologyComment(student)].join('\t');
+    }
+
+    function copySchoologyBundle(kind) {
+      var students = schoologyStudents();
+      var text = kind === 'comments'
+        ? students.map(buildSchoologyCommentOnlyLine).join('\n')
+        : ['Student Name\tScore\tComment'].concat(students.map(buildSchoologyRowLine)).join('\n');
+      copyText(text, kind === 'comments' ? 'Schoology comments copied.' : 'Schoology rows copied.');
+    }
+
+    function copyText(text, message) {
+      if (!text) return showToast('Nothing to copy yet.');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showToast(message || 'Copied.');
+        }).catch(function() {
+          fallbackCopyText(text, message);
+        });
+        return;
+      }
+      fallbackCopyText(text, message);
+    }
+
+    function fallbackCopyText(text, message) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', 'readonly');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(message || 'Copied.');
+      } catch (err) {
+        showToast('Copy failed.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function markActiveStudent() {
+      Array.prototype.slice.call(document.querySelectorAll('.group-item[data-student-id]')).forEach(function(item) {
+        item.classList.toggle('active', item.getAttribute('data-student-id') === state.selectedStudentId);
+      });
+    }
+
+    function formatStudentMeta(student) {
+      if (student.totalScore === '') return student.status;
+      return student.status + ' • ' + student.totalScore + '/' + getCurrentTotalMax() + (student.percent !== '' ? ' (' + student.percent + '%)' : '');
+    }
+
+    function getCurrentTotalMax() {
+      return state.rubric.reduce(function(total, criterion) { return total + Number(criterion.max || 0); }, 0) || 20;
+    }
+
+    function computeLocalTotal(scores) {
+      var total = 0;
+      var hasAny = false;
+      state.rubric.forEach(function(criterion) {
+        var value = scoreOrBlank(scores[criterion.key]);
+        if (value === '') return;
+        total += Number(value);
+        hasAny = true;
+      });
+      return hasAny ? round1(total) : '';
+    }
+
+    function countWords(text) {
+      return String(text || '').trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function walkTextNodes(root, callback) {
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(callback);
+    }
+
+    function parseCSVFull(text) {
+      var rows = [];
+      var row = [];
+      var cell = '';
+      var inQuotes = false;
+      for (var i = 0; i < text.length; i += 1) {
+        var char = text[i];
+        var next = text[i + 1];
+        if (char === '"' && inQuotes && next === '"') {
+          cell += '"';
+          i += 1;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i += 1;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = '';
+        } else {
+          cell += char;
+        }
+      }
+      if (cell || row.length) {
+        row.push(cell);
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function downloadText(filename, text) {
+      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function splitCsv(value) {
+      if (!value) return [];
+      return String(value).split(/\s*,\s*/).filter(Boolean);
+    }
+
+    function sortName(name) {
+      var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (parts.length < 2) return String(name || '').trim();
+      var last = parts.pop();
+      return last + ', ' + parts.join(' ');
+    }
+
+    function normalizeForMatch(value) {
+      return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function valueForCsv(value) { return value == null ? '' : value; }
+    function scoreOrBlank(value) {
+      if (value === '' || value == null) return '';
+      var num = Number(value);
+      return isNaN(num) ? '' : num;
+    }
+    function round1(value) { return Math.round(Number(value) * 10) / 10; }
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(value) { return escapeHtml(value); }
+  </script>
+</body>
+</html>
