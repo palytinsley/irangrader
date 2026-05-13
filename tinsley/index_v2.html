@@ -2547,7 +2547,7 @@
         els.messageCenterPreviewTo.textContent = response.to || '(no email found)';
         els.messageCenterPreviewSubject.textContent = response.subject || '-';
         els.messageCenterPreviewFrame.srcdoc = response.htmlContent || '';
-        showTeacherCommentBox(response.finalComment || student.comment || '');
+        showTeacherCommentBox(response.finalComment || '');
         renderMessageCenterPrimeNotice(student);
       }).catch(function(err) {
         showError(err.message || String(err));
@@ -2997,7 +2997,7 @@
       var percent = student.percent === '' ? round1(total / getCurrentTotalMax() * 100) : student.percent;
       var pointsNeeded = getPointsNeededForPrimeGoal(total);
       return '<!doctype html><html><head><meta charset="utf-8"><title>PRIME Revision</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;color:#203044}.top{background:#203044;color:#fff;padding:18px 24px}.sheet{padding:28px 34px}h1{margin:0 0 6px;font-size:34px}.box{background:#f8faff;border-left:5px solid #4a40e0;border-radius:8px;padding:14px 16px;margin:18px 0}.rules{background:#fff8e1;border-left-color:#f59e0b}table{border-collapse:collapse;width:100%;margin-top:20px}td,th{border:1px solid #dce9ff;padding:12px;vertical-align:top}th{text-align:left;background:#eaf1ff}@media print{.top{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="top"><strong>Iran Summative PRIME Revision</strong></div><main class="sheet"><h1>' + escapeHtml(student.name) + '</h1><p>Period ' + escapeHtml(student.period) + ' • ' + escapeHtml(state.teacher.name) + '</p><p><strong>Score:</strong> ' + total + '/' + getCurrentTotalMax() + ' (' + percent + '%) • Needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%</p><p><strong>PRIME Trigger:</strong> Students below ' + getPrimeTriggerThreshold() + '% are flagged for PRIME so borderline rounding stays out of the way.</p><table><thead><tr><th>Criterion</th><th>Score</th><th>Comment</th></tr></thead><tbody>' + state.rubric.map(function(criterion) {
-        return '<tr><td>' + escapeHtml(criterion.title) + '</td><td>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</td><td>' + escapeHtml(student.comment || '') + '</td></tr>';
+        return '<tr><td>' + escapeHtml(criterion.title) + '</td><td>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</td><td>' + escapeHtml((student.criterionComments && student.criterionComments[criterion.key]) || '') + '</td></tr>';
       }).join('') + '</tbody></table><section class="box"><strong>Focus Areas</strong><p>' + escapeHtml((document.getElementById('primeFocusInput') || {}).value || student.primeFocusAreas || '') + '</p></section><section class="box"><strong>PRIME Comment</strong><p>' + escapeHtml((document.getElementById('primeCommentInput') || {}).value || student.primeComment || '') + '</p></section><section class="box rules"><strong>Rules</strong><p>Complete this revision using your class notes and teacher feedback. Do not use AI.</p></section></main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},600)})<\/script></body></html>';
     }
 
