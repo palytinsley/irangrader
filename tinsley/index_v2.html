@@ -1312,7 +1312,12 @@
       var qs = Object.keys(params).map(function(k) {
         return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
       }).join('&');
-      var res = await fetch(GAS_URL + '?' + qs);
+      var res = await fetch(GAS_URL + '?' + qs, {
+        credentials: 'omit'
+      }).catch(function(err) {
+        throw new Error('Network error on ' + action + ': ' + err.message);
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' on ' + action);
       return res.json();
     }
 
@@ -1320,8 +1325,12 @@
       payload.teacherKey = TEACHER_KEY;
       var res = await fetch(GAS_URL, {
         method: 'POST',
+        credentials: 'omit',
         body: JSON.stringify(payload)
+      }).catch(function(err) {
+        throw new Error('Network error on ' + payload.action + ': ' + err.message);
       });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' on ' + payload.action);
       return res.json();
     }
 
