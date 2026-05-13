@@ -1721,10 +1721,6 @@
           state.selectedStudent.scores[key] = value;
           state.rubricCollapsed[key] = false;
           renderRubric(state.selectedStudent);
-          setTimeout(function() {
-            state.rubricCollapsed[key] = true;
-            renderRubric(state.selectedStudent);
-          }, 200);
           scheduleSave();
         });
       });
