@@ -482,7 +482,26 @@
     }
     .wb-pill.found { background: rgba(0,105,71,0.14); color: var(--tertiary); }
     .wb-pill.missing { background: rgba(180,19,64,0.08); color: var(--error); box-shadow: inset 0 0 0 1px rgba(180,19,64,0.18); }
-    .essay-toolbar { gap: 0.6rem; justify-content: flex-start; }
+    .essay-toolbar { gap: 0.45rem; justify-content: flex-start; align-items: center; }
+    .tool-btn {
+      align-items: center;
+      background: var(--surface-container-low);
+      border: 0;
+      border-radius: var(--radius-md);
+      color: var(--on-surface);
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 0.88rem;
+      font-weight: 700;
+      gap: 0.35rem;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0.35rem 0.6rem;
+      transition: background 140ms;
+    }
+    .tool-btn:hover { background: var(--surface-container-high); }
+    .tool-btn.active { background: #fff176; color: #412f00; }
+    .toolbar-divider { background: var(--hairline); height: 24px; width: 1px; }
     .essay-display {
       background: var(--preview-bg);
       font-size: var(--essay-font-size);
@@ -988,21 +1007,26 @@
             <div class="word-bank-right" id="wordBankPills"></div>
           </div>
           <div class="essay-toolbar">
-            <select class="field-select" id="fontSizeSelect" style="width:140px;">
+            <button class="tool-btn" type="button" id="boldBtn" title="Bold"><i class="ti ti-bold"></i></button>
+            <button class="tool-btn" type="button" id="italicBtn" title="Italic"><i class="ti ti-italic"></i></button>
+            <button class="tool-btn" type="button" id="underlineBtn" title="Underline"><i class="ti ti-underline"></i></button>
+            <div class="toolbar-divider"></div>
+            <select class="field-select" id="fontSizeSelect" style="width:130px;">
               <option value="15">Small text</option>
               <option value="17" selected>Normal text</option>
               <option value="19">Large text</option>
             </select>
-            <select class="field-select" id="lineSpacingSelect" style="width:160px;">
+            <select class="field-select" id="lineSpacingSelect" style="width:150px;">
               <option value="1.5">Tight spacing</option>
               <option value="1.7" selected>Normal spacing</option>
               <option value="2">Loose spacing</option>
             </select>
-            <button class="secondary-btn" id="highlightToggleBtn"><i class="ti ti-highlighter"></i> Highlight</button>
-            <button class="secondary-btn" id="clearHighlightsBtn"><i class="ti ti-eraser"></i> Clear Highlights</button>
+            <div class="toolbar-divider"></div>
+            <button class="tool-btn" type="button" id="highlightToggleBtn" title="Highlight"><i class="ti ti-highlighter"></i> Highlight</button>
+            <button class="tool-btn" type="button" id="clearHighlightsBtn" title="Clear highlights"><i class="ti ti-eraser"></i> Clear</button>
           </div>
           <p class="citation-warning hidden" id="citationWarning">This submission is very short. Double-check whether the student actually answered all parts of the prompt.</p>
-          <div class="essay-display" id="essayContent"></div>
+          <div class="essay-display" id="essayContent" contenteditable="true" spellcheck="true"></div>
         </section>
 
         <div class="resize-handle" id="resizeHandle"></div>
@@ -1211,7 +1235,7 @@
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
-        'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
+        'boldBtn', 'italicBtn', 'underlineBtn', 'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
         'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
         'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
@@ -1237,6 +1261,18 @@
       els.primeModeBtn.addEventListener('click', togglePrimeMode);
       els.sidebarToggle.addEventListener('click', toggleSidebar);
       els.topbarMiniProgress.addEventListener('click', toggleSidebar);
+      els.boldBtn.addEventListener('click', function() {
+        document.execCommand('bold', false, null);
+        document.getElementById('essayContent').focus();
+      });
+      els.italicBtn.addEventListener('click', function() {
+        document.execCommand('italic', false, null);
+        document.getElementById('essayContent').focus();
+      });
+      els.underlineBtn.addEventListener('click', function() {
+        document.execCommand('underline', false, null);
+        document.getElementById('essayContent').focus();
+      });
       els.fontSizeSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-font-size', els.fontSizeSelect.value + 'px'); });
       els.lineSpacingSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-line-height', els.lineSpacingSelect.value); });
       els.highlightToggleBtn.addEventListener('click', toggleHighlightMode);
@@ -1274,6 +1310,11 @@
         if (!state.dirty && !state.rubricDirty) return;
         event.preventDefault();
         event.returnValue = '';
+      });
+      els.essayContent.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, text);
       });
       els.essayContent.addEventListener('mouseup', applyManualHighlightIfNeeded);
     }
