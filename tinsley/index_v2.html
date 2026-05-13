@@ -617,6 +617,252 @@
       padding: 0.95rem;
       white-space: pre-wrap;
     }
+    .message-center-container {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius);
+      box-shadow: var(--modal-shadow), 0 28px 70px rgba(7, 21, 43, 0.26);
+      display: grid;
+      grid-template-rows: auto auto auto auto minmax(0, 1fr);
+      max-height: min(92vh, 920px);
+      max-width: min(1320px, calc(100vw - 2rem));
+      overflow: hidden;
+      width: 100%;
+    }
+    .message-center-header { background: var(--surface-container-low); }
+    .message-center-toolbar {
+      align-items: end;
+      background: var(--surface-container-lowest);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1rem;
+      padding: 1rem 1.25rem;
+    }
+    .message-center-signoff { display: grid; gap: 0.35rem; min-width: 220px; }
+    .message-center-signoff label,
+    .message-center-check {
+      color: var(--on-surface-variant);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .message-center-check {
+      align-items: center;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      gap: 0.5rem;
+      min-height: 42px;
+      padding: 0.65rem 0.75rem;
+    }
+    .message-center-check input,
+    .message-row-check input { accent-color: var(--primary); }
+    .message-center-actions {
+      align-items: center;
+      background: var(--surface-container-low);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      padding: 0.85rem 1.25rem;
+    }
+    .message-center-actions .primary-btn,
+    .message-center-actions .secondary-btn { min-height: 38px; padding: 0.55rem 0.85rem; }
+    .message-center-status {
+      color: var(--on-surface-variant);
+      font-size: 0.82rem;
+      font-weight: 800;
+      min-height: 2.35rem;
+      padding: 0.7rem 1.25rem;
+    }
+    .message-center-layout {
+      display: grid;
+      grid-template-columns: minmax(390px, 0.42fr) minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-center-list-panel {
+      background: var(--surface-container-low);
+      border-right: 1px solid var(--hairline-strong);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-center-list-head {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+    }
+    .message-center-list-head strong { color: var(--on-surface); font-family: "Arvo", Georgia, serif; font-weight: 700; }
+    .message-center-list-head span {
+      color: var(--on-surface-variant);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .message-center-list {
+      display: grid;
+      gap: 0.55rem;
+      min-height: 0;
+      overflow: auto;
+      padding: 0 0.85rem 1rem;
+    }
+    .mc-loading-spinner {
+      align-items: center;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-direction: column;
+      font-size: 0.86rem;
+      font-weight: 800;
+      gap: 0.85rem;
+      justify-content: center;
+      min-height: 220px;
+      text-align: center;
+    }
+    .mc-spinner-ring {
+      animation: spin 0.9s linear infinite;
+      border: 3px solid var(--surface-container-high);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      display: block;
+      height: 34px;
+      width: 34px;
+    }
+    .message-student-row {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      padding: 0.8rem;
+      transition: background var(--speed) ease-out, box-shadow var(--speed) ease-out, transform var(--speed) ease-out;
+    }
+    .message-student-row.active {
+      background: var(--card-hover);
+      box-shadow: inset 4px 0 0 var(--primary), var(--ambient-tight);
+    }
+    .message-student-row.is-incomplete { opacity: 0.58; }
+    .message-student-row.prime-eligible {
+      box-shadow: inset 3px 0 0 #820026, var(--ambient-tight);
+    }
+    .message-row-check input { height: 1.05rem; width: 1.05rem; }
+    .message-row-main {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .message-row-name {
+      color: var(--on-surface);
+      font-size: 0.98rem;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .message-row-meta {
+      color: var(--on-surface-variant);
+      font-size: 0.75rem;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .message-row-score { min-width: 58px; text-align: right; }
+    .message-row-score strong {
+      color: var(--primary);
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+    .message-row-score span {
+      color: var(--on-surface-variant);
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .message-row-status { display: flex; justify-content: flex-end; min-width: 96px; }
+    .message-unsent-badge,
+    .message-incomplete-badge,
+    .email-sent-badge {
+      border-radius: var(--radius-sm);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 0.42rem 0.52rem;
+      white-space: nowrap;
+    }
+    .message-unsent-badge { background: rgba(0,105,71,0.14); color: var(--tertiary); text-transform: uppercase; }
+    .message-incomplete-badge { background: var(--surface-container); color: var(--on-surface-variant); text-transform: uppercase; }
+    .email-sent-badge {
+      align-items: center;
+      background: rgba(74,64,224,0.1);
+      color: var(--primary);
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+    .message-center-preview-panel {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-preview-meta {
+      background: var(--surface-container-lowest);
+      border-bottom: 1px solid var(--hairline-strong);
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+      padding: 1rem 1.25rem;
+    }
+    .message-preview-meta strong {
+      color: var(--on-surface);
+      display: block;
+      font-size: 0.92rem;
+      margin-top: 0.22rem;
+      overflow-wrap: anywhere;
+    }
+    .mc-teacher-comment-box {
+      background: var(--surface-container-high);
+      border-left: 2px solid var(--primary);
+      border-radius: var(--radius-sm);
+      color: var(--on-surface);
+      font-size: 0.85rem;
+      line-height: 1.45;
+      margin: 0.85rem 1.25rem 0;
+      padding: 10px 14px;
+    }
+    .mc-comment-label {
+      align-items: center;
+      color: var(--primary);
+      display: inline-flex;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+    .mc-teacher-comment-box p {
+      color: var(--on-surface-variant);
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    #mcPrimeNotice {
+      background: #fff4dc;
+      border-left: 3px solid #f59e0b;
+      border-radius: var(--radius-sm);
+      color: #78350f;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin: 0.85rem 1.25rem 0;
+      padding: 0.65rem 0.9rem;
+    }
+    .message-center-preview {
+      background: var(--preview-bg);
+      border: 0;
+      min-height: 560px;
+      width: 100%;
+    }
     .toast {
       background: var(--toast-bg);
       border-radius: var(--radius-md);
@@ -814,12 +1060,26 @@
       .topbar-actions { justify-content: flex-start; }
       .topbar-mini-progress { display: none !important; }
       .settings-menu { left: 0; right: auto; }
+      .message-center-container { max-height: 96vh; max-width: calc(100vw - 0.75rem); }
+      .message-center-layout,
+      .message-preview-meta { grid-template-columns: 1fr; }
+      .message-center-list-panel { border-right: 0; max-height: 42vh; }
+      .message-student-row {
+        align-items: start;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+      }
+      .message-row-status { grid-column: 2 / -1; justify-content: flex-start; }
+      .message-center-preview { min-height: 460px; }
     }
   </style>
 </head>
 <body>
+  <div id="configWarningBanner" style="display:none;background:#fef3c7;border-bottom:2px solid #f59e0b;color:#78350f;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:700;padding:10px 20px;text-align:center;position:sticky;top:0;z-index:999;">
+    ⚠️ This deployment is using a placeholder Script ID. Open <code>Code.gs</code> and update <code>CONFIG.SCRIPT_ID</code> and <code>CONFIG.OWNER_TEACHER_KEY</code> before using.
+  </div>
   <script>
     var TEACHER_KEY = 'tinsley';
+    var CONFIG_SCRIPT_ID = 'AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH'; // replace in fork
     var GAS_URL = 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec';
     var DEFAULT_RUBRIC = [
       { key: 'claim', title: 'Claim', max: 4, bands: [
@@ -893,6 +1153,14 @@
         essaysUploaded: false,
         rosterError: '',
         essayError: ''
+      },
+      messageCenter: {
+        students: [],
+        selectedKeys: new Set(),
+        activeKey: '',
+        includeAlreadySent: false,
+        showIncomplete: false,
+        loading: false
       }
     };
     var els = {};
@@ -966,6 +1234,7 @@
             <div class="settings-menu hidden" id="settingsMenu" role="menu">
               <div class="settings-menu-group">
                 <button type="button" id="analyticsBtn" role="menuitem"><i class="ti ti-chart-bar"></i> Analytics</button>
+                <button type="button" id="messageCenterBtn" role="menuitem"><i class="ti ti-mail-cog"></i> Message Center</button>
                 <button type="button" id="schoologyBtn" role="menuitem"><i class="ti ti-copy"></i> Schoology Mode</button>
                 <button type="button" id="rubricEditorBtn" role="menuitem"><i class="ti ti-table-options"></i> Edit Rubric</button>
                 <a id="settingsOpenSheetLink" href="#" target="_blank" rel="noopener" role="menuitem"><i class="ti ti-table-share"></i> Open in Sheets</a>
@@ -1112,6 +1381,75 @@
     </div>
   </div>
 
+  <div class="modal-overlay hidden" id="messageCenterModal" role="dialog" aria-modal="true" aria-labelledby="messageCenterTitle">
+    <div class="message-center-container">
+      <div class="modal-header message-center-header">
+        <div>
+          <p class="eyebrow">Teacher messaging</p>
+          <h3 id="messageCenterTitle">Message Center</h3>
+          <p class="section-note">Review completed rubric emails, preview any student, and batch send without accidental duplicates.</p>
+        </div>
+        <button class="icon-btn" id="messageCenterClose" aria-label="Close Message Center">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="message-center-toolbar">
+        <div class="message-center-signoff">
+          <label for="messageCenterSignoff">Sign-off</label>
+          <input id="messageCenterSignoff" class="field-input" type="text" value="Mr. Tinsley">
+        </div>
+        <label class="message-center-check">
+          <input type="checkbox" id="messageCenterIncludeSent">
+          <span>Include already sent students</span>
+        </label>
+        <label class="message-center-check">
+          <input type="checkbox" id="messageCenterShowIncomplete">
+          <span>Show incomplete students</span>
+        </label>
+      </div>
+
+      <div class="message-center-actions">
+        <button class="secondary-btn" id="messageCenterSelectEligible" type="button"><i class="ti ti-checks"></i> Select all eligible</button>
+        <button class="secondary-btn" id="messageCenterSelectUnsent" type="button"><i class="ti ti-mail-check"></i> Select unsent only</button>
+        <button class="secondary-btn" id="messageCenterClearSelection" type="button"><i class="ti ti-eraser"></i> Clear selection</button>
+        <button class="secondary-btn" id="messageCenterTestSend" type="button"><i class="ti ti-flask"></i> Send test email</button>
+        <button class="primary-btn" id="messageCenterSendSelected" type="button"><i class="ti ti-send"></i> Send selected</button>
+      </div>
+
+      <div class="message-center-status" id="messageCenterStatus" role="status" aria-live="polite"></div>
+
+      <div class="message-center-layout">
+        <section class="message-center-list-panel" aria-label="Student messages">
+          <div class="message-center-list-head">
+            <strong id="messageCenterCount">0 students</strong>
+            <span id="messageCenterSelectionCount">0 selected</span>
+          </div>
+          <div class="message-center-list" id="messageCenterList"></div>
+        </section>
+
+        <section class="message-center-preview-panel" aria-label="Email preview">
+          <div class="message-preview-meta">
+            <div>
+              <span class="eyebrow">Recipient</span>
+              <strong id="messageCenterPreviewTo">Select a student</strong>
+            </div>
+            <div>
+              <span class="eyebrow">Subject</span>
+              <strong id="messageCenterPreviewSubject">-</strong>
+            </div>
+          </div>
+          <div class="mc-teacher-comment-box hidden" id="mcTeacherCommentBox">
+            <strong class="mc-comment-label"><i class="ti ti-message-2"></i> Teacher Comment</strong>
+            <p id="mcTeacherCommentText"></p>
+          </div>
+          <div id="mcPrimeNotice" class="hidden"></div>
+          <iframe id="messageCenterPreviewFrame" class="message-center-preview" sandbox="allow-same-origin" title="Message Center email preview"></iframe>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <div class="setup-overlay hidden" id="setupOverlay">
     <div class="setup-card">
       <div class="setup-header">
@@ -1208,6 +1546,12 @@
 
     function init() {
       cacheElements();
+      (function() {
+        var banner = document.getElementById('configWarningBanner');
+        if (banner && (CONFIG_SCRIPT_ID === 'YOUR_SCRIPT_ID_HERE' || !CONFIG_SCRIPT_ID)) {
+          banner.style.display = 'block';
+        }
+      })();
       bindEvents();
       renderTeacherFrame();
       setSaveState('Loading', 'saving');
@@ -1221,7 +1565,7 @@
       [
         'teacherTitle', 'periodFilters', 'summaryProgressRing', 'summaryPercent', 'summaryCount', 'primeSummary', 'studentJump', 'studentList',
         'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn',
-        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn',
+        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn', 'messageCenterBtn',
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
@@ -1230,6 +1574,10 @@
         'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
         'toast', 'confirmModal', 'confirmEyebrow', 'confirmTitle', 'confirmBody', 'confirmClose', 'confirmCancel', 'confirmOk',
+        'messageCenterModal', 'messageCenterClose', 'messageCenterSignoff', 'messageCenterIncludeSent', 'messageCenterShowIncomplete',
+        'messageCenterSelectEligible', 'messageCenterSelectUnsent', 'messageCenterClearSelection', 'messageCenterTestSend',
+        'messageCenterSendSelected', 'messageCenterStatus', 'messageCenterCount', 'messageCenterSelectionCount', 'messageCenterList',
+        'messageCenterPreviewTo', 'messageCenterPreviewSubject', 'messageCenterPreviewFrame', 'mcTeacherCommentBox', 'mcTeacherCommentText', 'mcPrimeNotice',
         'setupOverlay', 'rosterFileInput', 'essayFileInput', 'rosterPreview', 'essayPreview', 'uploadRosterBtn', 'uploadEssayBtn',
         'startGradingBtn', 'splashScreen',
         'setupStep1', 'setupStep2', 'setupStep3', 'setupStep4', 'setupStep5', 'setupStep6',
@@ -1245,6 +1593,7 @@
       els.nextUngradedBtn.addEventListener('click', selectNextUngraded);
       els.settingsBtn.addEventListener('click', toggleSettingsMenu);
       els.analyticsBtn.addEventListener('click', enterAnalyticsMode);
+      els.messageCenterBtn.addEventListener('click', openMessageCenter);
       els.schoologyBtn.addEventListener('click', enterSchoologyMode);
       els.rubricEditorBtn.addEventListener('click', enterRubricEditorMode);
       els.returnGradingBtn.addEventListener('click', returnToGradingMode);
@@ -1288,6 +1637,21 @@
       els.confirmClose.addEventListener('click', closeConfirmModal);
       els.confirmCancel.addEventListener('click', closeConfirmModal);
       els.confirmOk.addEventListener('click', runConfirmAction);
+      els.messageCenterClose.addEventListener('click', closeMessageCenter);
+      els.messageCenterIncludeSent.addEventListener('change', function() {
+        state.messageCenter.includeAlreadySent = els.messageCenterIncludeSent.checked;
+        renderMessageCenterList();
+      });
+      els.messageCenterShowIncomplete.addEventListener('change', function() {
+        state.messageCenter.showIncomplete = els.messageCenterShowIncomplete.checked;
+        renderMessageCenterList();
+      });
+      els.messageCenterSelectEligible.addEventListener('click', selectAllEligibleMessages);
+      els.messageCenterSelectUnsent.addEventListener('click', selectUnsentMessages);
+      els.messageCenterClearSelection.addEventListener('click', clearMessageSelection);
+      els.messageCenterTestSend.addEventListener('click', sendMessageCenterTestEmail);
+      els.messageCenterSendSelected.addEventListener('click', sendSelectedMessages);
+      els.messageCenterList.addEventListener('click', handleMessageCenterListClick);
       els.readerDefaultBtn.addEventListener('click', function() { setReaderMode('default'); });
       els.readerBeigeBtn.addEventListener('click', function() { setReaderMode('beige'); });
       els.readerDarkBtn.addEventListener('click', function() { setReaderMode('dark'); });
@@ -2062,6 +2426,267 @@
       });
     }
 
+    function openMessageCenter() {
+      closeSettingsMenu();
+      state.messageCenter.loading = true;
+      state.messageCenter.selectedKeys = new Set();
+      state.messageCenter.activeKey = '';
+      els.messageCenterIncludeSent.checked = state.messageCenter.includeAlreadySent;
+      els.messageCenterShowIncomplete.checked = state.messageCenter.showIncomplete;
+      els.messageCenterStatus.textContent = 'Loading message data...';
+      els.messageCenterList.innerHTML = '<div class="mc-loading-spinner"><span class="mc-spinner-ring" aria-hidden="true"></span><span>Loading student data...</span></div>';
+      els.messageCenterPreviewTo.textContent = 'Select a student';
+      els.messageCenterPreviewSubject.textContent = '-';
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(null);
+      els.messageCenterPreviewFrame.srcdoc = '<p style="font-family:Arial,sans-serif;color:#888;padding:2rem;text-align:center;">Choose a student to preview the full email.</p>';
+      els.messageCenterModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      apiPost({ action: 'getMessageCenterData', teacherKey: state.teacherKey }).then(function(response) {
+        state.messageCenter.loading = false;
+        if (!response.ok) return showError(response.message || 'Unable to load Message Center data.');
+        state.messageCenter.students = response.students || [];
+        els.messageCenterSignoff.value = response.defaultSignoff || 'Mr. Tinsley';
+        els.messageCenterStatus.textContent = 'Test emails go to ' + (response.testRecipient || 'the active teacher account') + '.';
+        renderMessageCenterList();
+        var firstEligible = state.messageCenter.students.find(function(student) { return student.eligible; });
+        if (firstEligible) previewMessageStudent(messageKey(firstEligible));
+      }).catch(function(err) {
+        state.messageCenter.loading = false;
+        hideTeacherCommentBox();
+        showError(err.message || String(err));
+      });
+    }
+
+    function closeMessageCenter() {
+      els.messageCenterModal.classList.add('hidden');
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(null);
+      document.body.style.overflow = '';
+    }
+
+    function renderMessageCenterList() {
+      var mc = state.messageCenter;
+      mc.selectedKeys = new Set(mc.students.filter(isMessageSelectable).filter(function(student) {
+        return mc.selectedKeys.has(messageKey(student));
+      }).map(messageKey));
+      var visible = mc.students.filter(function(student) {
+        return mc.showIncomplete || student.eligible;
+      });
+      els.messageCenterList.innerHTML = '';
+      els.messageCenterCount.textContent = visible.length + ' student' + (visible.length === 1 ? '' : 's');
+      updateMessageSelectionCount();
+      if (!visible.length) {
+        els.messageCenterList.innerHTML = '<div class="notice">No completed student messages yet. Turn on "Show incomplete students" to see the rest.</div>';
+        return;
+      }
+      visible.forEach(function(student) {
+        var key = messageKey(student);
+        var selected = mc.selectedKeys.has(key);
+        var alreadySent = student.emailSent === 'Yes';
+        var selectable = isMessageSelectable(student);
+        var isPrime = student.primeEligible === 'YES';
+        var row = document.createElement('article');
+        row.className = 'message-student-row ' + (student.eligible ? '' : 'is-incomplete ') + (isPrime ? 'prime-eligible ' : '') + (key === mc.activeKey ? 'active' : '');
+        row.setAttribute('data-message-key', key);
+        row.innerHTML = '' +
+          '<label class="message-row-check" aria-label="Select ' + escapeAttr(student.name) + '">' +
+            '<input type="checkbox" data-message-select ' + (selected ? 'checked ' : '') + (selectable ? '' : 'disabled') + '>' +
+          '</label>' +
+          '<button class="message-row-main" type="button" data-message-preview>' +
+            '<span class="message-row-name">' + escapeHtml(student.name || 'Unnamed student') + (isPrime ? ' <span class="prime-badge"><i class="ti ti-pencil-plus"></i> PRIME</span>' : '') + '</span>' +
+            '<span class="message-row-meta">Period ' + escapeHtml(student.period || '-') + ' • ' + escapeHtml(student.status || 'Ungraded') + '</span>' +
+            '<span class="message-row-meta">' + escapeHtml(student.email || 'No email on file') + '</span>' +
+          '</button>' +
+          '<div class="message-row-score">' +
+            '<strong>' + (student.totalScore === '' ? '-' : escapeHtml(String(student.totalScore))) + '/' + getCurrentTotalMax() + '</strong>' +
+            '<span>' + (student.percent === '' ? '-' : escapeHtml(String(student.percent)) + '%') + '</span>' +
+          '</div>' +
+          '<div class="message-row-status">' +
+            (alreadySent
+              ? '<span class="email-sent-badge"><i class="ti ti-circle-check"></i> Sent ' + escapeHtml(emailSentDateStr(student.emailSentAt)) + '</span>'
+              : student.eligible
+                ? '<span class="message-unsent-badge">Ready</span>'
+                : '<span class="message-incomplete-badge">Incomplete</span>') +
+          '</div>';
+        els.messageCenterList.appendChild(row);
+      });
+    }
+
+    function handleMessageCenterListClick(event) {
+      var row = event.target.closest('[data-message-key]');
+      if (!row) return;
+      var key = row.getAttribute('data-message-key');
+      if (event.target.matches('[data-message-select]')) {
+        var student = getMessageStudentByKey(key);
+        if (!student || !isMessageSelectable(student)) return;
+        if (event.target.checked) state.messageCenter.selectedKeys.add(key);
+        else state.messageCenter.selectedKeys.delete(key);
+        updateMessageSelectionCount();
+        return;
+      }
+      previewMessageStudent(key);
+    }
+
+    function previewMessageStudent(key) {
+      var student = getMessageStudentByKey(key);
+      if (!student) return;
+      state.messageCenter.activeKey = key;
+      renderMessageCenterList();
+      els.messageCenterPreviewTo.textContent = 'Loading...';
+      els.messageCenterPreviewSubject.textContent = '-';
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(student);
+      els.messageCenterPreviewFrame.srcdoc = '<p style="font-family:Arial,sans-serif;color:#888;padding:2rem;text-align:center;">Loading full email preview...</p>';
+      apiPost({
+        action: 'getMessageCenterPreview',
+        studentId: key,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        if (!response.ok) return showError(response.message || 'Unable to load email preview.');
+        els.messageCenterPreviewTo.textContent = response.to || '(no email found)';
+        els.messageCenterPreviewSubject.textContent = response.subject || '-';
+        els.messageCenterPreviewFrame.srcdoc = response.htmlContent || '';
+        showTeacherCommentBox(response.finalComment || student.comment || '');
+        renderMessageCenterPrimeNotice(student);
+      }).catch(function(err) {
+        showError(err.message || String(err));
+      });
+    }
+
+    function messageKey(student) {
+      return student.studentId;
+    }
+
+    function isMessageSelectable(student) {
+      return !!(student && student.eligible && (state.messageCenter.includeAlreadySent || student.emailSent !== 'Yes'));
+    }
+
+    function selectAllEligibleMessages() {
+      state.messageCenter.selectedKeys = new Set(state.messageCenter.students.filter(isMessageSelectable).map(messageKey));
+      renderMessageCenterList();
+    }
+
+    function selectUnsentMessages() {
+      state.messageCenter.selectedKeys = new Set(state.messageCenter.students.filter(function(student) {
+        return student.eligible && student.emailSent !== 'Yes';
+      }).map(messageKey));
+      renderMessageCenterList();
+    }
+
+    function clearMessageSelection() {
+      state.messageCenter.selectedKeys = new Set();
+      renderMessageCenterList();
+    }
+
+    function sendSelectedMessages() {
+      var selected = getSelectedMessageStudents();
+      if (!selected.length) return showToast('Select at least one eligible student.');
+      var alreadySent = selected.filter(function(student) { return student.emailSent === 'Yes'; }).length;
+      var newSends = selected.length - alreadySent;
+      var includeSent = state.messageCenter.includeAlreadySent;
+      var warning = includeSent && alreadySent
+        ? '\n\nDuplicate warning: ' + alreadySent + ' already-sent student' + (alreadySent === 1 ? '' : 's') + ' will receive another email.'
+        : '\n\nAlready-sent students are skipped by default unless "Include already sent students" is enabled.';
+      var confirmed = window.confirm(
+        'Send rubric emails for ' + selected.length + ' selected student' + (selected.length === 1 ? '' : 's') + '?\n\n' +
+        'New sends: ' + newSends + '\nAlready sent: ' + alreadySent + warning
+      );
+      if (!confirmed) return;
+      els.messageCenterSendSelected.disabled = true;
+      els.messageCenterStatus.textContent = 'Sending selected messages...';
+      apiPost({
+        action: 'sendMessageCenterBatch',
+        students: selected.map(function(student) { return { studentId: student.studentId }; }),
+        includeAlreadySent: state.messageCenter.includeAlreadySent,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        els.messageCenterSendSelected.disabled = false;
+        if (!response.ok) return showError(response.message || 'Unable to send selected messages.');
+        state.messageCenter.students = response.students || state.messageCenter.students;
+        state.messageCenter.selectedKeys = new Set();
+        renderMessageCenterList();
+        els.messageCenterStatus.textContent = 'Sent ' + response.sentCount + '. Skipped ' + response.skippedAlreadySentCount + ' already sent, ' + response.skippedIncompleteCount + ' incomplete, ' + response.missingEmailCount + ' missing email. Errors: ' + response.errorsCount + '.';
+        showToast('Message Center sent ' + response.sentCount + ' email' + (response.sentCount === 1 ? '' : 's') + '.');
+        loadAppData();
+      }).catch(function(err) {
+        els.messageCenterSendSelected.disabled = false;
+        showError(err.message || String(err));
+      });
+    }
+
+    function sendMessageCenterTestEmail() {
+      var active = getMessageStudentByKey(state.messageCenter.activeKey);
+      var fallback = state.messageCenter.students.find(function(student) { return student.eligible; });
+      var target = active && active.eligible ? active : fallback;
+      if (!target) return showToast('No completed student is available for a test email.');
+      els.messageCenterTestSend.disabled = true;
+      els.messageCenterStatus.textContent = 'Sending test email using ' + target.name + '\'s preview...';
+      apiPost({
+        action: 'sendMessageCenterTestEmail',
+        studentId: target.studentId,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        els.messageCenterTestSend.disabled = false;
+        if (!response.ok) return showError(response.message || 'Unable to send test email.');
+        els.messageCenterStatus.textContent = 'Test email sent to ' + response.to + ' using ' + response.studentName + '\'s preview.';
+        showToast('Test email sent.');
+      }).catch(function(err) {
+        els.messageCenterTestSend.disabled = false;
+        showError(err.message || String(err));
+      });
+    }
+
+    function getSelectedMessageStudents() {
+      return state.messageCenter.students.filter(function(student) {
+        return state.messageCenter.selectedKeys.has(messageKey(student));
+      });
+    }
+
+    function getMessageStudentByKey(key) {
+      return state.messageCenter.students.find(function(student) {
+        return messageKey(student) === key;
+      });
+    }
+
+    function updateMessageSelectionCount() {
+      var selected = getSelectedMessageStudents();
+      els.messageCenterSelectionCount.textContent = selected.length + ' selected';
+    }
+
+    function showTeacherCommentBox(comment) {
+      var text = String(comment || '').trim();
+      if (!text) return hideTeacherCommentBox();
+      els.mcTeacherCommentText.textContent = text;
+      els.mcTeacherCommentBox.classList.remove('hidden');
+    }
+
+    function hideTeacherCommentBox() {
+      if (!els.mcTeacherCommentBox) return;
+      els.mcTeacherCommentBox.classList.add('hidden');
+      if (els.mcTeacherCommentText) els.mcTeacherCommentText.textContent = '';
+    }
+
+    function renderMessageCenterPrimeNotice(student) {
+      if (!els.mcPrimeNotice) return;
+      if (!student || student.primeEligible !== 'YES') {
+        els.mcPrimeNotice.classList.add('hidden');
+        els.mcPrimeNotice.textContent = '';
+        return;
+      }
+      var total = Number(student.totalScore);
+      var pointsNeeded = Number.isNaN(total) ? '-' : Math.max(0, Math.ceil((getPrimeDisplayThreshold() / 100) * getCurrentTotalMax()) - total);
+      els.mcPrimeNotice.textContent = 'PRIME eligible — needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%.';
+      els.mcPrimeNotice.classList.remove('hidden');
+    }
+
+    function emailSentDateStr(value) {
+      if (!value) return 'previously';
+      var date = new Date(value);
+      if (isNaN(date.getTime())) return 'previously';
+      return date.toLocaleDateString();
+    }
+
     async function savePrimeThresholdSetting() {
       var value = Number(els.primeThresholdInput.value);
       if (isNaN(value) || value < 1 || value > 100) {
@@ -2341,6 +2966,8 @@
         comment: student.comment,
         vocabFound: student.vocabFound,
         vocabMissing: student.vocabMissing,
+        emailSent: student.emailSent,
+        emailSentAt: student.emailSentAt,
         hasEssay: !!student.essay
       };
     }
@@ -2583,6 +3210,7 @@
     function handleKeys(event) {
       if (event.key === 'Escape') {
         if (!els.confirmModal.classList.contains('hidden')) return closeConfirmModal();
+        if (!els.messageCenterModal.classList.contains('hidden')) return closeMessageCenter();
         return closeSettingsMenu();
       }
       if (event.target.matches('textarea, input, select, button')) return;

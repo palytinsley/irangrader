@@ -1,3 +1,13 @@
+/*
+ * FORK SETUP — Mr. Castaneda
+ * 1. Change CONFIG.OWNER_TEACHER_KEY from 'tinsley' to 'castaneda'
+ * 2. Change CONFIG.SCRIPT_ID to your new GAS script ID
+ * 3. Change CONFIG.TEST_EMAIL_RECIPIENT to scastaneda@pausd.org
+ * 4. In index.html, update CONFIG_SCRIPT_ID to your new script ID
+ * 5. Deploy as new web app under your Google account
+ * 6. Run clasp push from the /gas folder
+ * The SPREADSHEET_ID stays the same — shared data, separate deployments.
+ */
 const CONFIG = {
   SPREADSHEET_ID: '1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc',
   WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec',
@@ -26,9 +36,18 @@ const CONFIG = {
     NOT_NEEDED: 'Not Needed'
   },
   TEACHERS: {
-    tinsley: { name: 'Mr. Tinsley', periods: ['3'] },
-    castaneda: { name: 'Mr. Castaneda', periods: ['1', '2'] }
+    tinsley: {
+      name: 'Mr. Tinsley',
+      email: 'ktinsley@pausd.org',
+      periods: ['3']
+    },
+    castaneda: {
+      name: 'Mr. Castaneda',
+      email: 'scastaneda@pausd.org',
+      periods: ['1', '2']
+    }
   },
+  OWNER_TEACHER_KEY: 'tinsley',
   STUDENT_HEADERS: [
     'Student ID', 'Name', 'Sort Name', 'Period', 'Teacher', 'Email',
     'Essay', 'Claim Score', 'Evidence Score', 'Reasoning Score', 'Mechanics Score',
@@ -37,7 +56,7 @@ const CONFIG = {
     'Vocab Found', 'Vocab Missing',
     'Claim Comment', 'Evidence Comment', 'Reasoning Comment', 'Mechanics Comment',
     'Comment', 'Last Saved At', 'Last Saved By', 'Roster Loaded At', 'Essay Loaded At',
-    'Last Viewed At'
+    'Last Viewed At', 'Email Sent', 'Email Sent At'
   ],
   SETTINGS_DEFAULTS: {
     'Assignment Title': 'Iran Summative',
@@ -145,6 +164,14 @@ function doPost(e) {
         return jsonOutput_(saveRubric_(payload));
       case 'savePrimeSettings':
         return jsonOutput_(savePrimeSettings_(payload));
+      case 'getMessageCenterData':
+        return jsonOutput_(getMessageCenterData(payload));
+      case 'getMessageCenterPreview':
+        return jsonOutput_(getMessageCenterPreview(payload));
+      case 'sendMessageCenterBatch':
+        return jsonOutput_(sendMessageCenterBatch(payload));
+      case 'sendMessageCenterTestEmail':
+        return jsonOutput_(sendMessageCenterTestEmail(payload));
       default:
         return jsonOutput_({ ok: false, message: 'Unknown action.' });
     }
@@ -562,6 +589,291 @@ function savePrimeSettings_(payload) {
   }
 }
 
+function getMessageCenterData(payload) {
+  try {
+    var teacherKey = stringOrBlank_(payload && payload.teacherKey).toLowerCase() || CONFIG.OWNER_TEACHER_KEY;
+    var ctx = readAppContext_();
+    var rubric = getRubric_();
+    var students = ctx.rows
+      .filter(function(row) {
+        return matchesTeacher_(getValue_(row, ctx.headerMap, 'Teacher'), teacherKey);
+      })
+      .map(function(row) {
+        return buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
+      })
+      .sort(compareStudents_);
+    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
+    var result = students.map(function(student) {
+      return {
+        studentId: student.studentId,
+        name: student.name,
+        sortName: student.sortName,
+        period: student.period,
+        email: student.email,
+        totalScore: student.totalScore,
+        percent: student.percent,
+        status: student.status,
+        primeEligible: student.primeEligible,
+        primeStatus: student.primeStatus,
+        comment: student.comment,
+        scores: student.scores,
+        criterionComments: student.criterionComments,
+        vocabFound: student.vocabFound,
+        vocabMissing: student.vocabMissing,
+        emailSent: student.emailSent,
+        emailSentAt: student.emailSentAt,
+        eligible: student.status === CONFIG.STATUS.COMPLETE && !!student.email
+      };
+    });
+    return {
+      ok: true,
+      students: result,
+      defaultSignoff: owner.name || 'Mr. Tinsley',
+      senderEmail: owner.email || '',
+      testRecipient: CONFIG.TEST_EMAIL_RECIPIENT,
+      ownerTeacherKey: CONFIG.OWNER_TEACHER_KEY
+    };
+  } catch (err) {
+    logError_('getMessageCenterData', err);
+    return errorResponse_(err);
+  }
+}
+
+function getMessageCenterPreview(payload) {
+  try {
+    if (!payload || !payload.studentId) throw new Error('Missing student ID.');
+    var ctx = readAppContext_();
+    var rubric = getRubric_();
+    var totalMax = getRubricTotal_(rubric);
+    var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
+    if (!match) throw new Error('Student not found.');
+    var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
+    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
+    var signoff = stringOrBlank_(payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
+    var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
+    var subject = buildEmailSubject_(student, ctx.settings);
+    return {
+      ok: true,
+      to: student.email || '(no email)',
+      subject: subject,
+      htmlContent: html,
+      emailAlreadySent: student.emailSent === 'Yes',
+      emailSentAt: student.emailSentAt,
+      finalComment: student.comment
+    };
+  } catch (err) {
+    logError_('getMessageCenterPreview', err);
+    return errorResponse_(err);
+  }
+}
+
+function sendMessageCenterBatch(payload) {
+  try {
+    var students = Array.isArray(payload && payload.students) ? payload.students : [];
+    var includeAlreadySent = !!(payload && payload.includeAlreadySent);
+    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
+    var signoff = stringOrBlank_(payload && payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
+    var counts = {
+      sentCount: 0,
+      skippedAlreadySentCount: 0,
+      skippedIncompleteCount: 0,
+      missingEmailCount: 0,
+      errorsCount: 0
+    };
+
+    withDocumentWriteLock_(function() {
+      var ctx = readAppContext_();
+      var rubric = getRubric_();
+      var totalMax = getRubricTotal_(rubric);
+
+      students.forEach(function(item) {
+        var match = findStudentRow_(ctx.rows, ctx.headerMap, item.studentId);
+        if (!match) {
+          counts.errorsCount += 1;
+          return;
+        }
+        var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
+        if (student.status !== CONFIG.STATUS.COMPLETE) {
+          counts.skippedIncompleteCount += 1;
+          return;
+        }
+        if (!student.email) {
+          counts.missingEmailCount += 1;
+          return;
+        }
+        if (student.emailSent === 'Yes' && !includeAlreadySent) {
+          counts.skippedAlreadySentCount += 1;
+          return;
+        }
+        try {
+          var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
+          var subject = buildEmailSubject_(student, ctx.settings);
+          GmailApp.sendEmail(student.email, subject, '', {
+            htmlBody: html,
+            name: signoff
+          });
+          setRowValue_(match.row, ctx.headerMap, 'Email Sent', 'Yes');
+          setRowValue_(match.row, ctx.headerMap, 'Email Sent At', new Date());
+          writeSheetRow_(ctx.sheet, match.rowNumber, match.row);
+          counts.sentCount += 1;
+        } catch (sendErr) {
+          logError_('sendMessageCenterBatch:send', sendErr, { studentId: student.studentId });
+          counts.errorsCount += 1;
+        }
+      });
+    });
+
+    var ctx2 = readAppContext_();
+    var rubric2 = getRubric_();
+    var allStudents = ctx2.rows
+      .map(function(row) {
+        var s = toStudentSummary_(buildStudentFromRow_(row, ctx2.headerMap, ctx2.settings, rubric2));
+        s.eligible = s.status === CONFIG.STATUS.COMPLETE && !!s.email;
+        return s;
+      })
+      .sort(compareStudents_);
+
+    logAction_('sendMessageCenterBatch', JSON.stringify({
+      sentCount: counts.sentCount,
+      errors: counts.errorsCount,
+      owner: CONFIG.OWNER_TEACHER_KEY
+    }));
+    return {
+      ok: true,
+      sentCount: counts.sentCount,
+      skippedAlreadySentCount: counts.skippedAlreadySentCount,
+      skippedIncompleteCount: counts.skippedIncompleteCount,
+      missingEmailCount: counts.missingEmailCount,
+      errorsCount: counts.errorsCount,
+      students: allStudents
+    };
+  } catch (err) {
+    logError_('sendMessageCenterBatch', err);
+    return errorResponse_(err);
+  }
+}
+
+function sendMessageCenterTestEmail(payload) {
+  try {
+    if (!payload || !payload.studentId) throw new Error('Missing student ID.');
+    var ctx = readAppContext_();
+    var rubric = getRubric_();
+    var totalMax = getRubricTotal_(rubric);
+    var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
+    if (!match) throw new Error('Student not found.');
+    var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
+    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
+    var signoff = stringOrBlank_(payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
+    var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
+    var subject = '[TEST] ' + buildEmailSubject_(student, ctx.settings);
+    GmailApp.sendEmail(CONFIG.TEST_EMAIL_RECIPIENT, subject, '', {
+      htmlBody: html,
+      name: signoff
+    });
+    logAction_('sendMessageCenterTestEmail', JSON.stringify({
+      studentId: student.studentId,
+      owner: CONFIG.OWNER_TEACHER_KEY
+    }));
+    return { ok: true, to: CONFIG.TEST_EMAIL_RECIPIENT, studentName: student.name };
+  } catch (err) {
+    logError_('sendMessageCenterTestEmail', err);
+    return errorResponse_(err);
+  }
+}
+
+function buildEmailSubject_(student, settings) {
+  var assignmentTitle = (settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
+  var courseName = (settings && settings['Course Name']) || CONFIG.COURSE_NAME;
+  return assignmentTitle + ' Feedback — ' + courseName;
+}
+
+function buildRubricEmailHtml_(student, rubric, totalMax, signoff, settings) {
+  var assignmentTitle = (settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
+  var courseName = (settings && settings['Course Name']) || CONFIG.COURSE_NAME;
+  var firstName = stringOrBlank_(student.name).split(/\s+/).filter(Boolean)[0] || 'there';
+  var totalScore = student.totalScore === '' ? '-' : escapeHtml_(String(student.totalScore));
+  var percentText = student.percent === '' ? '' : ' (' + escapeHtml_(String(student.percent)) + '%)';
+  var statusBadge = '<span style="display:inline-block;background:#e8eefc;border-radius:999px;color:#1f2937;font-size:0.82rem;font-weight:700;margin-left:10px;padding:6px 10px;vertical-align:middle;">' +
+    escapeHtml_(student.status || CONFIG.STATUS.UNGRADED) + '</span>';
+  var primeThreshold = getPrimeDisplayThresholdFromSettings_(settings);
+  var pointsNeeded = Math.max(0, Math.ceil(totalMax * primeThreshold / 100) - Number(student.totalScore || 0));
+  var primeCommentText = stringOrBlank_(settings && settings['PRIME Comment Text']);
+  var rubricHtml = (rubric || []).map(function(criterion) {
+    var score = student.scores && student.scores[criterion.key];
+    var band = (criterion.bands || []).find(function(item) {
+      return Number(item.score) === Number(score);
+    });
+    var bandLabel = band ? band.label : score !== '' && score !== null && score !== undefined ? 'Custom Score' : 'Not scored';
+    var bandText = band ? band.text : '';
+    var comment = stringOrBlank_(student.criterionComments && student.criterionComments[criterion.key]);
+    return '' +
+      '<div style="border:1px solid #e5e7eb;border-radius:10px;margin:16px 0;padding:18px;">' +
+        '<div style="align-items:flex-start;display:flex;gap:12px;justify-content:space-between;">' +
+          '<div style="color:#111827;font-size:1rem;font-weight:700;">' + escapeHtml_(criterion.title) + '</div>' +
+          '<div style="color:#4a40e0;font-size:1rem;font-weight:800;">' + escapeHtml_(String(score === '' ? '-' : score)) + '/' + escapeHtml_(String(criterion.max)) + '</div>' +
+        '</div>' +
+        '<div style="color:' + (bandLabel === 'Not scored' ? '#9ca3af' : '#6b7280') + ';font-size:0.74em;font-variant:small-caps;font-weight:700;letter-spacing:0.06em;margin-top:8px;text-transform:uppercase;">' + escapeHtml_(bandLabel) + '</div>' +
+        (bandText ? '<div style="color:#6b7280;font-size:0.9em;font-style:italic;margin:8px 0 0;">' + escapeHtml_(bandText) + '</div>' : '') +
+        (comment ? (
+          '<div style="background:rgba(74,64,224,0.07);border-left:3px solid #4a40e0;border-radius:6px;margin-top:10px;padding:12px 14px;">' +
+            '<div style="color:#4a40e0;font-size:0.7em;font-weight:800;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;">Teacher Comment</div>' +
+            '<div style="color:#1f2937;white-space:pre-wrap;">' + escapeHtml_(comment) + '</div>' +
+          '</div>'
+        ) : '') +
+      '</div>';
+  }).join('');
+  var overallCommentHtml = stringOrBlank_(student.comment) ? (
+    '<div style="background:rgba(74,64,224,0.05);border-left:3px solid #4a40e0;border-radius:6px;margin:20px 0 0;padding:14px 16px;">' +
+      '<div style="color:#4a40e0;font-size:0.7em;font-weight:800;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;">Overall Feedback</div>' +
+      '<div style="color:#1f2937;white-space:pre-wrap;">' + escapeHtml_(student.comment) + '</div>' +
+    '</div>'
+  ) : '';
+  var vocabHtml = '';
+  if (student.vocabMissing && student.vocabMissing.length > 0) {
+    vocabHtml = '' +
+      '<div style="margin-top:20px;">' +
+        '<div style="color:#111827;font-size:0.95rem;font-weight:700;margin-bottom:6px;">Vocabulary</div>' +
+        '<div style="color:#b45309;font-size:0.9rem;">Missing terms: ' + escapeHtml_(student.vocabMissing.join(', ')) + '</div>' +
+      '</div>';
+  } else if (student.vocabFound && student.vocabFound.length > 0) {
+    vocabHtml = '<div style="color:#006947;font-size:0.92rem;font-weight:700;margin-top:20px;">&#10003; All vocabulary terms used</div>';
+  }
+
+  return '' +
+    '<div style="background:#f3f4f6;margin:0;padding:0;">' +
+      '<div style="background:#1a1a2e;color:#ffffff;padding:16px 24px;">' +
+        '<table role="presentation" style="border-collapse:collapse;width:100%;"><tr>' +
+          '<td style="font-size:1.05rem;font-weight:700;">' + escapeHtml_(assignmentTitle) + '</td>' +
+          '<td style="font-size:0.95rem;text-align:right;">' + escapeHtml_(courseName) + '</td>' +
+        '</tr></table>' +
+      '</div>' +
+      '<div style="background:#ffffff;font-family:Arial,sans-serif;margin:0 auto;max-width:600px;padding:24px;">' +
+        '<div style="color:#111827;font-size:1rem;margin-bottom:4px;">Hi ' + escapeHtml_(firstName) + ',</div>' +
+        '<div style="color:#6b7280;font-size:0.95rem;">Here is your feedback for ' + escapeHtml_(assignmentTitle) + '.</div>' +
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;margin:20px 0;padding:20px;">' +
+          '<div style="color:#4a40e0;font-size:2.5rem;font-weight:800;line-height:1;">' + totalScore +
+            '<span style="color:#6b7280;font-size:1.2rem;font-weight:600;">/' + escapeHtml_(String(totalMax)) + '</span>' +
+          '</div>' +
+          '<div style="color:#6b7280;font-size:0.98rem;margin-top:10px;">' + percentText + statusBadge + '</div>' +
+        '</div>' +
+        (student.primeEligible === 'YES' ? (
+          '<div style="background:#fffbeb;border-left:5px solid #f59e0b;border-radius:8px;margin:20px 0;padding:18px 20px;">' +
+            '<div style="color:#b45309;font-size:1rem;font-weight:800;margin-bottom:8px;">&#128204; PRIME Revision Eligible</div>' +
+            '<div style="color:#78350f;line-height:1.5;">You need ' + escapeHtml_(String(pointsNeeded)) + ' more point(s) to reach ' + escapeHtml_(String(primeThreshold)) + '%. Visit PRIME to revise your essay.</div>' +
+            (primeCommentText ? '<div style="color:#92400e;font-size:0.9rem;line-height:1.45;margin-top:8px;">' + escapeHtml_(primeCommentText) + '</div>' : '') +
+          '</div>'
+        ) : '') +
+        rubricHtml +
+        overallCommentHtml +
+        vocabHtml +
+        '<div style="border-top:1px solid #e5e7eb;color:#9ca3af;font-size:0.82em;margin-top:24px;padding-top:16px;">' +
+          '<div>' + escapeHtml_(signoff) + ' — ' + escapeHtml_(courseName) + '</div>' +
+          '<div style="margin-top:4px;">This feedback is for your review. Reply to this email with any questions.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
 function readAppContext_() {
   const ss = bootstrapSpreadsheet_();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.STUDENTS);
@@ -796,6 +1108,8 @@ function buildStudentFromRow_(row, headerMap, settings, rubric) {
     lastSavedBy: stringOrBlank_(getValue_(row, headerMap, 'Last Saved By')),
     rosterLoadedAt: dateToIso_(getValue_(row, headerMap, 'Roster Loaded At')),
     essayLoadedAt: dateToIso_(getValue_(row, headerMap, 'Essay Loaded At')),
+    emailSent: stringOrBlank_(getValue_(row, headerMap, 'Email Sent')) || 'No',
+    emailSentAt: dateToIso_(getValue_(row, headerMap, 'Email Sent At')),
     hasEssay: !!stringOrBlank_(getValue_(row, headerMap, 'Essay')),
     rubric: actualRubric
   };
@@ -848,6 +1162,8 @@ function toStudentSummary_(student) {
     comment: student.comment,
     vocabFound: student.vocabFound,
     vocabMissing: student.vocabMissing,
+    emailSent: student.emailSent,
+    emailSentAt: student.emailSentAt,
     hasEssay: student.hasEssay
   };
 }
