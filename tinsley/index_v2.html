@@ -796,7 +796,7 @@
 <body>
   <script>
     var TEACHER_KEY = 'tinsley';
-    var GAS_URL = 'https://script.google.com/a/macros/pausd.org/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec';
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec';
     var DEFAULT_RUBRIC = [
       { key: 'claim', title: 'Claim', max: 4, bands: [
         { label: 'Full Credit', score: 4, text: 'Clear, arguable claim for each of the three questions that directly addresses the prompt.' },
@@ -1313,26 +1313,88 @@
       var qs = Object.keys(params).map(function(k) {
         return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
       }).join('&');
-      var res = await fetch(GAS_URL + '?' + qs, {
+      var endpoint = GAS_URL + '?' + qs;
+      console.log('[GAS] GET', action, endpoint);
+      var res = await fetch(endpoint, {
         credentials: 'omit'
       }).catch(function(err) {
+        console.error('[GAS] Network failure', { action: action, method: 'GET', endpoint: endpoint, message: err.message });
         throw new Error('Network error on ' + action + ': ' + err.message);
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status + ' on ' + action);
-      return res.json();
+      return handleApiResponse(res, {
+        action: action,
+        method: 'GET',
+        endpoint: endpoint
+      });
     }
 
     async function apiPost(payload) {
       payload.teacherKey = TEACHER_KEY;
+      console.log('[GAS] POST', payload.action, GAS_URL);
       var res = await fetch(GAS_URL, {
         method: 'POST',
         credentials: 'omit',
         body: JSON.stringify(payload)
       }).catch(function(err) {
+        console.error('[GAS] Network failure', { action: payload.action, method: 'POST', endpoint: GAS_URL, message: err.message });
         throw new Error('Network error on ' + payload.action + ': ' + err.message);
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status + ' on ' + payload.action);
-      return res.json();
+      return handleApiResponse(res, {
+        action: payload.action,
+        method: 'POST',
+        endpoint: GAS_URL
+      });
+    }
+
+    function summarizeResponseText(text) {
+      return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+    }
+
+    function looksLikeAuthHtml(text) {
+      return /classlink|servicelogin|accounts\.google|signin/i.test(String(text || ''));
+    }
+
+    async function handleApiResponse(res, context) {
+      var text = '';
+      try {
+        text = await res.text();
+      } catch (err) {
+        console.warn('[GAS] Unable to read response text', context, err);
+      }
+
+      var responsePreview = summarizeResponseText(text);
+      console.log('[GAS] Response', {
+        action: context.action,
+        method: context.method,
+        endpoint: context.endpoint,
+        status: res.status,
+        statusText: res.statusText,
+        redirected: res.redirected,
+        responsePreview: responsePreview
+      });
+
+      var parsed = null;
+      if (text) {
+        try {
+          parsed = JSON.parse(text);
+        } catch (err) {}
+      }
+
+      if (!res.ok) {
+        if (parsed && parsed.message) throw new Error('HTTP ' + res.status + ' on ' + context.action + ': ' + parsed.message);
+        if (looksLikeAuthHtml(text)) throw new Error('Auth HTML returned on ' + context.action + ' instead of JSON. Check GAS deployment access and web app URL.');
+        if (/^\s*</.test(text)) throw new Error('HTML returned on ' + context.action + ' instead of JSON.');
+        throw new Error('HTTP ' + res.status + ' on ' + context.action + (responsePreview ? ': ' + responsePreview : ''));
+      }
+
+      if (parsed) {
+        if (parsed.ok === false) console.warn('[GAS] JSON error payload', parsed);
+        return parsed;
+      }
+
+      if (looksLikeAuthHtml(text)) throw new Error('Auth HTML returned on ' + context.action + ' instead of JSON. Check GAS deployment access and web app URL.');
+      if (/^\s*</.test(text)) throw new Error('HTML returned on ' + context.action + ' instead of JSON.');
+      throw new Error('Invalid JSON on ' + context.action + (responsePreview ? ': ' + responsePreview : ''));
     }
 
     async function loadAppData() {

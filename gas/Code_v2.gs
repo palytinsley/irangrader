@@ -1,6 +1,6 @@
 const CONFIG = {
   SPREADSHEET_ID: '1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc',
-  WEB_APP_URL: 'https://script.google.com/a/macros/pausd.org/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec',
+  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec',
   SCRIPT_ID: '1DMPQB5PCjrRj1_-OMpoBR5GJPxipWjYFJ70LzP4iW8xuvSRsyj-RsgZM',
   TEST_EMAIL_RECIPIENT: 'ktinsley@pausd.org',
   ASSIGNMENT_TITLE: 'Iran Summative',
@@ -47,6 +47,8 @@ const CONFIG = {
     'Revise To Percent': '85'
   }
 };
+
+const BACKEND_VERSION = 'lockfix-v5';
 
 const RUBRIC = [
   {
@@ -105,6 +107,8 @@ function doGet(e) {
     const action = stringOrBlank_(e && e.parameter && e.parameter.action);
     if (!action) return HtmlService.createHtmlOutput(buildStatusPage_()).setTitle('Iran Summative API');
     switch (action) {
+      case 'health':
+        return jsonOutput_({ ok: true, backendVersion: BACKEND_VERSION });
       case 'getStudents':
         return jsonOutput_(getStudents_(e.parameter.teacherKey));
       case 'getStudentDetails':
@@ -1036,6 +1040,8 @@ function buildStatusPage_() {
     '</head><body>',
     '<h1>Iran Summative API</h1>',
     '<p>This Apps Script deployment is live.</p>',
+    '<p>Backend version: <code>' + BACKEND_VERSION + '</code></p>',
+    '<p>Health: <code>?action=health</code></p>',
     '<p>Reads: <code>?action=getStudents&amp;teacherKey=tinsley</code></p>',
     '<p>Writes: <code>POST {"action":"saveGrade",...}</code></p>',
     '</body></html>'
