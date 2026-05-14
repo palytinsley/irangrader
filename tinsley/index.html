@@ -1279,13 +1279,21 @@
         <div class="topbar-actions">
           <span class="save-pill" id="saveState"><i class="ti ti-device-floppy"></i> Loading</span>
           <button class="secondary-btn hidden" id="printPrimeTopBtn"><i class="ti ti-printer"></i> Print This Student</button>
-          <button class="secondary-btn" id="primeModeBtn"><i class="ti ti-pencil-plus"></i> PRIME</button>
           <button class="secondary-btn" id="prevStudentBtn"><i class="ti ti-arrow-left"></i> Prev</button>
           <button class="secondary-btn" id="nextStudentBtn">Next <i class="ti ti-arrow-right"></i></button>
           <button class="primary-btn" id="nextUngradedBtn"><i class="ti ti-player-skip-forward"></i> Next Ungraded</button>
           <div class="settings-menu-wrap">
             <button class="icon-btn" id="settingsBtn" aria-expanded="false"><i class="ti ti-settings"></i></button>
             <div class="settings-menu hidden" id="settingsMenu" role="menu">
+              <div class="settings-menu-group">
+                <p class="settings-menu-label">PRIME Mode</p>
+                <div class="settings-inline-row">
+                  <p class="settings-menu-note" id="primeModeNote">Off - show all students</p>
+                  <button type="button" class="secondary-btn" id="primeModeBtn" style="min-height:38px; padding:0.45rem 0.85rem; font-size:0.82rem;">
+                    <i class="ti ti-pencil-plus"></i> Enable
+                  </button>
+                </div>
+              </div>
               <div class="settings-menu-group">
                 <button type="button" id="analyticsBtn" role="menuitem"><i class="ti ti-chart-bar"></i> Analytics</button>
                 <button type="button" id="messageCenterBtn" role="menuitem"><i class="ti ti-mail-cog"></i> Message Center</button>
@@ -2548,7 +2556,12 @@
       }
       state.primeMode = entering;
       els.primeModeBtn.classList.toggle('active', state.primeMode);
-      els.primeModeBtn.innerHTML = '<i class="ti ti-pencil-plus"></i> ' + (state.primeMode ? 'PRIME Mode' : 'PRIME');
+      els.primeModeBtn.innerHTML = state.primeMode
+        ? '<i class="ti ti-pencil-plus"></i> Disable'
+        : '<i class="ti ti-pencil-plus"></i> Enable';
+      document.getElementById('primeModeNote').textContent = state.primeMode
+        ? 'On - PRIME-eligible only'
+        : 'Off - show all students';
       renderStudentNav();
       if (state.primeMode) {
         var firstPrime = visibleStudents()[0];
