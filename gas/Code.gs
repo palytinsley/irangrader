@@ -1,18 +1,13 @@
 /*
- * FORK SETUP — Mr. Castaneda
- * 1. Change CONFIG.OWNER_TEACHER_KEY from 'tinsley' to 'castaneda'
- * 2. Change CONFIG.SCRIPT_ID to your new GAS script ID
- * 3. Change CONFIG.TEST_EMAIL_RECIPIENT to scastaneda@pausd.org
- * 4. In index.html, update CONFIG_SCRIPT_ID to your new script ID
- * 5. Deploy as new web app under your Google account
- * 6. Run clasp push from the /gas folder
- * The SPREADSHEET_ID stays the same — shared data, separate deployments.
+ * Castaneda deployment wiring.
+ * Keep the app logic aligned with the latest frontend while pointing this
+ * deployment at Castaneda's own script, sheet, and teacher defaults.
  */
 const CONFIG = {
-  SPREADSHEET_ID: '1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc',
-  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec',
-  SCRIPT_ID: '1DMPQB5PCjrRj1_-OMpoBR5GJPxipWjYFJ70LzP4iW8xuvSRsyj-RsgZM',
-  TEST_EMAIL_RECIPIENT: 'ktinsley@pausd.org',
+  SPREADSHEET_ID: '16321xD-gOsrjXHpyu0FkOlnl4KgYIRLNKehP38ZTgmU',
+  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxIKypruOEqyrvfnLjvirKtgarbp8wRU62j0hrVVKGjd_Rv7onsQiMzy0flkgXtrL6ZFQ/exec',
+  SCRIPT_ID: '1_cRN9IAVBjqqykDRSDuIYOLIf5NQlwsHnuBjDKcPTbZUj5xoXy_UsNgx',
+  TEST_EMAIL_RECIPIENT: 'scastaneda@pausd.org',
   ASSIGNMENT_TITLE: 'Iran Summative',
   COURSE_NAME: 'Contemporary World History',
   TOTAL_MAX: 20,
@@ -47,7 +42,7 @@ const CONFIG = {
       periods: ['1', '2']
     }
   },
-  OWNER_TEACHER_KEY: 'tinsley',
+  OWNER_TEACHER_KEY: 'castaneda',
   STUDENT_HEADERS: [
     'Student ID', 'Name', 'Sort Name', 'Period', 'Teacher', 'Email',
     'Essay', 'Claim Score', 'Evidence Score', 'Reasoning Score', 'Mechanics Score',
@@ -1382,7 +1377,7 @@ function buildStatusPage_() {
     '<p>This Apps Script deployment is live.</p>',
     '<p>Backend version: <code>' + BACKEND_VERSION + '</code></p>',
     '<p>Health: <code>?action=health</code></p>',
-    '<p>Reads: <code>?action=getStudents&amp;teacherKey=tinsley</code></p>',
+    '<p>Reads: <code>?action=getStudents&amp;teacherKey=castaneda</code></p>',
     '<p>Writes: <code>POST {"action":"saveGrade",...}</code></p>',
     '</body></html>'
   ].join('');

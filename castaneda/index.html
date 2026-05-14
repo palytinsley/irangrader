@@ -244,6 +244,26 @@
       width: 100%;
     }
     .field-textarea { min-height: 96px; resize: vertical; }
+    .comment-save-row {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    .comment-save-status {
+      color: var(--on-surface-variant);
+      font-size: 0.76rem;
+      font-weight: 700;
+      min-height: 1.1rem;
+    }
+    .comment-save-status.unsaved { color: #996300; }
+    .comment-save-status.saved { color: var(--tertiary); }
+    .criterion-comment-save-btn.is-saved,
+    #saveOverallCommentBtn.is-saved {
+      background: rgba(0,105,71,0.12);
+      color: var(--tertiary);
+    }
     .group-list { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
     .group-item {
       background: var(--surface-container-lowest);
@@ -542,10 +562,19 @@
       justify-content: space-between;
     }
     .rubric-card-head.collapsible { cursor: pointer; }
+    .rubric-card-head > div:first-child { min-width: 0; }
     .rubric-title { display: inline-flex; gap: 0.55rem; align-items: center; font-size: 1.03rem; }
-    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+    .rubric-head-actions { align-items: center; display: flex; flex-wrap: wrap; flex-shrink: 0; gap: 0.4rem; justify-content: flex-end; }
     .selected-band-chip { background: rgba(74,64,224,0.12); color: var(--primary); }
     .score-state { background: var(--surface-container-low); color: var(--on-surface-variant); }
+    .score-points { font-variant-numeric: tabular-nums; padding-inline: 0.52rem; }
+    .score-points.full-points { background: rgba(0,105,71,0.12); color: var(--tertiary); }
+    .score-points.partial-points { background: rgba(74,64,224,0.12); color: var(--primary); }
+    .score-points.zero-points { background: rgba(180,19,64,0.12); color: var(--error); }
+    @media (max-width: 700px) {
+      .rubric-card-head { align-items: stretch; flex-direction: column; }
+      .rubric-head-actions { justify-content: flex-start; }
+    }
     .rubric-performance-grid { display: grid; gap: 0.75rem; }
     .performance-card {
       align-items: flex-start;
@@ -616,6 +645,252 @@
       margin-top: 0.75rem;
       padding: 0.95rem;
       white-space: pre-wrap;
+    }
+    .message-center-container {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius);
+      box-shadow: var(--modal-shadow), 0 28px 70px rgba(7, 21, 43, 0.26);
+      display: grid;
+      grid-template-rows: auto auto auto auto minmax(0, 1fr);
+      max-height: min(92vh, 920px);
+      max-width: min(1320px, calc(100vw - 2rem));
+      overflow: hidden;
+      width: 100%;
+    }
+    .message-center-header { background: var(--surface-container-low); }
+    .message-center-toolbar {
+      align-items: end;
+      background: var(--surface-container-lowest);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1rem;
+      padding: 1rem 1.25rem;
+    }
+    .message-center-signoff { display: grid; gap: 0.35rem; min-width: 220px; }
+    .message-center-signoff label,
+    .message-center-check {
+      color: var(--on-surface-variant);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .message-center-check {
+      align-items: center;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      gap: 0.5rem;
+      min-height: 42px;
+      padding: 0.65rem 0.75rem;
+    }
+    .message-center-check input,
+    .message-row-check input { accent-color: var(--primary); }
+    .message-center-actions {
+      align-items: center;
+      background: var(--surface-container-low);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      padding: 0.85rem 1.25rem;
+    }
+    .message-center-actions .primary-btn,
+    .message-center-actions .secondary-btn { min-height: 38px; padding: 0.55rem 0.85rem; }
+    .message-center-status {
+      color: var(--on-surface-variant);
+      font-size: 0.82rem;
+      font-weight: 800;
+      min-height: 2.35rem;
+      padding: 0.7rem 1.25rem;
+    }
+    .message-center-layout {
+      display: grid;
+      grid-template-columns: minmax(390px, 0.42fr) minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-center-list-panel {
+      background: var(--surface-container-low);
+      border-right: 1px solid var(--hairline-strong);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-center-list-head {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.9rem 1rem;
+    }
+    .message-center-list-head strong { color: var(--on-surface); font-family: "Arvo", Georgia, serif; font-weight: 700; }
+    .message-center-list-head span {
+      color: var(--on-surface-variant);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .message-center-list {
+      display: grid;
+      gap: 0.55rem;
+      min-height: 0;
+      overflow: auto;
+      padding: 0 0.85rem 1rem;
+    }
+    .mc-loading-spinner {
+      align-items: center;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-direction: column;
+      font-size: 0.86rem;
+      font-weight: 800;
+      gap: 0.85rem;
+      justify-content: center;
+      min-height: 220px;
+      text-align: center;
+    }
+    .mc-spinner-ring {
+      animation: spin 0.9s linear infinite;
+      border: 3px solid var(--surface-container-high);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      display: block;
+      height: 34px;
+      width: 34px;
+    }
+    .message-student-row {
+      align-items: center;
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-md);
+      box-shadow: inset 0 0 0 1px var(--hairline);
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      padding: 0.8rem;
+      transition: background var(--speed) ease-out, box-shadow var(--speed) ease-out, transform var(--speed) ease-out;
+    }
+    .message-student-row.active {
+      background: var(--card-hover);
+      box-shadow: inset 4px 0 0 var(--primary), var(--ambient-tight);
+    }
+    .message-student-row.is-incomplete { opacity: 0.58; }
+    .message-student-row.prime-eligible {
+      box-shadow: inset 3px 0 0 #820026, var(--ambient-tight);
+    }
+    .message-row-check input { height: 1.05rem; width: 1.05rem; }
+    .message-row-main {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+      padding: 0;
+      text-align: left;
+    }
+    .message-row-name {
+      color: var(--on-surface);
+      font-size: 0.98rem;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .message-row-meta {
+      color: var(--on-surface-variant);
+      font-size: 0.75rem;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .message-row-score { min-width: 58px; text-align: right; }
+    .message-row-score strong {
+      color: var(--primary);
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+    .message-row-score span {
+      color: var(--on-surface-variant);
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+    .message-row-status { display: flex; justify-content: flex-end; min-width: 96px; }
+    .message-unsent-badge,
+    .message-incomplete-badge,
+    .email-sent-badge {
+      border-radius: var(--radius-sm);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 0.42rem 0.52rem;
+      white-space: nowrap;
+    }
+    .message-unsent-badge { background: rgba(0,105,71,0.14); color: var(--tertiary); text-transform: uppercase; }
+    .message-incomplete-badge { background: var(--surface-container); color: var(--on-surface-variant); text-transform: uppercase; }
+    .email-sent-badge {
+      align-items: center;
+      background: rgba(74,64,224,0.1);
+      color: var(--primary);
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+    .message-center-preview-panel {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      min-height: 0;
+    }
+    .message-preview-meta {
+      background: var(--surface-container-lowest);
+      border-bottom: 1px solid var(--hairline-strong);
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+      padding: 1rem 1.25rem;
+    }
+    .message-preview-meta strong {
+      color: var(--on-surface);
+      display: block;
+      font-size: 0.92rem;
+      margin-top: 0.22rem;
+      overflow-wrap: anywhere;
+    }
+    .mc-teacher-comment-box {
+      background: var(--surface-container-high);
+      border-left: 2px solid var(--primary);
+      border-radius: var(--radius-sm);
+      color: var(--on-surface);
+      font-size: 0.85rem;
+      line-height: 1.45;
+      margin: 0.85rem 1.25rem 0;
+      padding: 10px 14px;
+    }
+    .mc-comment-label {
+      align-items: center;
+      color: var(--primary);
+      display: inline-flex;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+    .mc-teacher-comment-box p {
+      color: var(--on-surface-variant);
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    #mcPrimeNotice {
+      background: #fff4dc;
+      border-left: 3px solid #f59e0b;
+      border-radius: var(--radius-sm);
+      color: #78350f;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin: 0.85rem 1.25rem 0;
+      padding: 0.65rem 0.9rem;
+    }
+    .message-center-preview {
+      background: var(--preview-bg);
+      border: 0;
+      min-height: 560px;
+      width: 100%;
     }
     .toast {
       background: var(--toast-bg);
@@ -814,13 +1089,27 @@
       .topbar-actions { justify-content: flex-start; }
       .topbar-mini-progress { display: none !important; }
       .settings-menu { left: 0; right: auto; }
+      .message-center-container { max-height: 96vh; max-width: calc(100vw - 0.75rem); }
+      .message-center-layout,
+      .message-preview-meta { grid-template-columns: 1fr; }
+      .message-center-list-panel { border-right: 0; max-height: 42vh; }
+      .message-student-row {
+        align-items: start;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+      }
+      .message-row-status { grid-column: 2 / -1; justify-content: flex-start; }
+      .message-center-preview { min-height: 460px; }
     }
   </style>
 </head>
 <body>
+  <div id="configWarningBanner" style="display:none;background:#fef3c7;border-bottom:2px solid #f59e0b;color:#78350f;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:700;padding:10px 20px;text-align:center;position:sticky;top:0;z-index:999;">
+    ⚠️ This deployment is using a placeholder Script ID. Open <code>Code.gs</code> and update <code>CONFIG.SCRIPT_ID</code> and <code>CONFIG.OWNER_TEACHER_KEY</code> before using.
+  </div>
   <script>
     var TEACHER_KEY = 'castaneda';
-    var GAS_URL = 'https://script.google.com/macros/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec';
+    var CONFIG_SCRIPT_ID = 'AKfycbxIKypruOEqyrvfnLjvirKtgarbp8wRU62j0hrVVKGjd_Rv7onsQiMzy0flkgXtrL6ZFQ';
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbxIKypruOEqyrvfnLjvirKtgarbp8wRU62j0hrVVKGjd_Rv7onsQiMzy0flkgXtrL6ZFQ/exec';
     var DEFAULT_RUBRIC = [
       { key: 'claim', title: 'Claim', max: 4, bands: [
         { label: 'Full Credit', score: 4, text: 'Clear, arguable claim for each of the three questions that directly addresses the prompt.' },
@@ -869,8 +1158,32 @@
       periodFilter: 'All',
       primeMode: false,
       dirty: false,
-      saveTimer: null,
+      changeVersion: 0,
+      pendingSave: false,
+      pendingSaveOptions: null,
+      scoreSaveTimers: {},
+      saveIdleResolvers: [],
       primeSaveTimer: null,
+      commentDrafts: {
+        overall: '',
+        criteria: {}
+      },
+      savedCommentSnapshot: {
+        overall: '',
+        criteria: {}
+      },
+      unsavedComments: {
+        overall: false,
+        criteria: {}
+      },
+      commentSaveFeedback: {
+        overall: false,
+        criteria: {}
+      },
+      commentSaveFeedbackTimers: {
+        overall: null,
+        criteria: {}
+      },
       rubricCollapsed: {},
       setupComplete: false,
       teacherKey: TEACHER_KEY,
@@ -893,6 +1206,14 @@
         essaysUploaded: false,
         rosterError: '',
         essayError: ''
+      },
+      messageCenter: {
+        students: [],
+        selectedKeys: new Set(),
+        activeKey: '',
+        includeAlreadySent: false,
+        showIncomplete: false,
+        loading: false
       }
     };
     var els = {};
@@ -957,7 +1278,6 @@
         <div class="topbar-actions">
           <span class="save-pill" id="saveState"><i class="ti ti-device-floppy"></i> Loading</span>
           <button class="secondary-btn hidden" id="printPrimeTopBtn"><i class="ti ti-printer"></i> Print This Student</button>
-          <button class="secondary-btn" id="primeModeBtn"><i class="ti ti-pencil-plus"></i> PRIME</button>
           <button class="secondary-btn" id="prevStudentBtn"><i class="ti ti-arrow-left"></i> Prev</button>
           <button class="secondary-btn" id="nextStudentBtn">Next <i class="ti ti-arrow-right"></i></button>
           <button class="primary-btn" id="nextUngradedBtn"><i class="ti ti-player-skip-forward"></i> Next Ungraded</button>
@@ -965,7 +1285,17 @@
             <button class="icon-btn" id="settingsBtn" aria-expanded="false"><i class="ti ti-settings"></i></button>
             <div class="settings-menu hidden" id="settingsMenu" role="menu">
               <div class="settings-menu-group">
+                <p class="settings-menu-label">PRIME Mode</p>
+                <div class="settings-inline-row">
+                  <p class="settings-menu-note" id="primeModeNote">Off - show all students</p>
+                  <button type="button" class="secondary-btn" id="primeModeBtn" style="min-height:38px; padding:0.45rem 0.85rem; font-size:0.82rem;">
+                    <i class="ti ti-pencil-plus"></i> Enable
+                  </button>
+                </div>
+              </div>
+              <div class="settings-menu-group">
                 <button type="button" id="analyticsBtn" role="menuitem"><i class="ti ti-chart-bar"></i> Analytics</button>
+                <button type="button" id="messageCenterBtn" role="menuitem"><i class="ti ti-mail-cog"></i> Message Center</button>
                 <button type="button" id="schoologyBtn" role="menuitem"><i class="ti ti-copy"></i> Schoology Mode</button>
                 <button type="button" id="rubricEditorBtn" role="menuitem"><i class="ti ti-table-options"></i> Edit Rubric</button>
                 <a id="settingsOpenSheetLink" href="#" target="_blank" rel="noopener" role="menuitem"><i class="ti ti-table-share"></i> Open in Sheets</a>
@@ -1027,7 +1357,7 @@
             <div>
               <p class="eyebrow" id="rubricEyebrow">20 Point Rubric</p>
               <h3><i class="ti ti-pencil-check"></i> CER Rubric</h3>
-              <p class="section-note">Scores autosave after a short delay. PRIME controls appear in PRIME mode.</p>
+              <p class="section-note">Scores autosave after a short delay. Comments save manually with the save buttons. PRIME controls appear in PRIME mode.</p>
             </div>
           </div>
           <div class="rubric-scroll" id="rubricList"></div>
@@ -1108,6 +1438,75 @@
       <div class="modal-footer">
         <button class="secondary-btn" id="confirmCancel" type="button">Cancel</button>
         <button class="primary-btn" id="confirmOk" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="messageCenterModal" role="dialog" aria-modal="true" aria-labelledby="messageCenterTitle">
+    <div class="message-center-container">
+      <div class="modal-header message-center-header">
+        <div>
+          <p class="eyebrow">Teacher messaging</p>
+          <h3 id="messageCenterTitle">Message Center</h3>
+          <p class="section-note">Review completed rubric emails, preview any student, and batch send without accidental duplicates.</p>
+        </div>
+        <button class="icon-btn" id="messageCenterClose" aria-label="Close Message Center">
+          <i class="ti ti-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="message-center-toolbar">
+        <div class="message-center-signoff">
+          <label for="messageCenterSignoff">Sign-off</label>
+          <input id="messageCenterSignoff" class="field-input" type="text" value="Mr. Castaneda">
+        </div>
+        <label class="message-center-check">
+          <input type="checkbox" id="messageCenterIncludeSent">
+          <span>Include already sent students</span>
+        </label>
+        <label class="message-center-check">
+          <input type="checkbox" id="messageCenterShowIncomplete">
+          <span>Show incomplete students</span>
+        </label>
+      </div>
+
+      <div class="message-center-actions">
+        <button class="secondary-btn" id="messageCenterSelectEligible" type="button"><i class="ti ti-checks"></i> Select all eligible</button>
+        <button class="secondary-btn" id="messageCenterSelectUnsent" type="button"><i class="ti ti-mail-check"></i> Select unsent only</button>
+        <button class="secondary-btn" id="messageCenterClearSelection" type="button"><i class="ti ti-eraser"></i> Clear selection</button>
+        <button class="secondary-btn" id="messageCenterTestSend" type="button"><i class="ti ti-flask"></i> Send test email</button>
+        <button class="primary-btn" id="messageCenterSendSelected" type="button"><i class="ti ti-send"></i> Send selected</button>
+      </div>
+
+      <div class="message-center-status" id="messageCenterStatus" role="status" aria-live="polite"></div>
+
+      <div class="message-center-layout">
+        <section class="message-center-list-panel" aria-label="Student messages">
+          <div class="message-center-list-head">
+            <strong id="messageCenterCount">0 students</strong>
+            <span id="messageCenterSelectionCount">0 selected</span>
+          </div>
+          <div class="message-center-list" id="messageCenterList"></div>
+        </section>
+
+        <section class="message-center-preview-panel" aria-label="Email preview">
+          <div class="message-preview-meta">
+            <div>
+              <span class="eyebrow">Recipient</span>
+              <strong id="messageCenterPreviewTo">Select a student</strong>
+            </div>
+            <div>
+              <span class="eyebrow">Subject</span>
+              <strong id="messageCenterPreviewSubject">-</strong>
+            </div>
+          </div>
+          <div class="mc-teacher-comment-box hidden" id="mcTeacherCommentBox">
+            <strong class="mc-comment-label"><i class="ti ti-message-2"></i> Teacher Comment</strong>
+            <p id="mcTeacherCommentText"></p>
+          </div>
+          <div id="mcPrimeNotice" class="hidden"></div>
+          <iframe id="messageCenterPreviewFrame" class="message-center-preview" sandbox="allow-same-origin" title="Message Center email preview"></iframe>
+        </section>
       </div>
     </div>
   </div>
@@ -1208,6 +1607,12 @@
 
     function init() {
       cacheElements();
+      (function() {
+        var banner = document.getElementById('configWarningBanner');
+        if (banner && (CONFIG_SCRIPT_ID === 'YOUR_SCRIPT_ID_HERE' || !CONFIG_SCRIPT_ID)) {
+          banner.style.display = 'block';
+        }
+      })();
       bindEvents();
       renderTeacherFrame();
       setSaveState('Loading', 'saving');
@@ -1221,7 +1626,7 @@
       [
         'teacherTitle', 'periodFilters', 'summaryProgressRing', 'summaryPercent', 'summaryCount', 'primeSummary', 'studentJump', 'studentList',
         'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn',
-        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn',
+        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn', 'messageCenterBtn',
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
@@ -1230,6 +1635,10 @@
         'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
         'toast', 'confirmModal', 'confirmEyebrow', 'confirmTitle', 'confirmBody', 'confirmClose', 'confirmCancel', 'confirmOk',
+        'messageCenterModal', 'messageCenterClose', 'messageCenterSignoff', 'messageCenterIncludeSent', 'messageCenterShowIncomplete',
+        'messageCenterSelectEligible', 'messageCenterSelectUnsent', 'messageCenterClearSelection', 'messageCenterTestSend',
+        'messageCenterSendSelected', 'messageCenterStatus', 'messageCenterCount', 'messageCenterSelectionCount', 'messageCenterList',
+        'messageCenterPreviewTo', 'messageCenterPreviewSubject', 'messageCenterPreviewFrame', 'mcTeacherCommentBox', 'mcTeacherCommentText', 'mcPrimeNotice',
         'setupOverlay', 'rosterFileInput', 'essayFileInput', 'rosterPreview', 'essayPreview', 'uploadRosterBtn', 'uploadEssayBtn',
         'startGradingBtn', 'splashScreen',
         'setupStep1', 'setupStep2', 'setupStep3', 'setupStep4', 'setupStep5', 'setupStep6',
@@ -1245,6 +1654,7 @@
       els.nextUngradedBtn.addEventListener('click', selectNextUngraded);
       els.settingsBtn.addEventListener('click', toggleSettingsMenu);
       els.analyticsBtn.addEventListener('click', enterAnalyticsMode);
+      els.messageCenterBtn.addEventListener('click', openMessageCenter);
       els.schoologyBtn.addEventListener('click', enterSchoologyMode);
       els.rubricEditorBtn.addEventListener('click', enterRubricEditorMode);
       els.returnGradingBtn.addEventListener('click', returnToGradingMode);
@@ -1288,6 +1698,21 @@
       els.confirmClose.addEventListener('click', closeConfirmModal);
       els.confirmCancel.addEventListener('click', closeConfirmModal);
       els.confirmOk.addEventListener('click', runConfirmAction);
+      els.messageCenterClose.addEventListener('click', closeMessageCenter);
+      els.messageCenterIncludeSent.addEventListener('change', function() {
+        state.messageCenter.includeAlreadySent = els.messageCenterIncludeSent.checked;
+        renderMessageCenterList();
+      });
+      els.messageCenterShowIncomplete.addEventListener('change', function() {
+        state.messageCenter.showIncomplete = els.messageCenterShowIncomplete.checked;
+        renderMessageCenterList();
+      });
+      els.messageCenterSelectEligible.addEventListener('click', selectAllEligibleMessages);
+      els.messageCenterSelectUnsent.addEventListener('click', selectUnsentMessages);
+      els.messageCenterClearSelection.addEventListener('click', clearMessageSelection);
+      els.messageCenterTestSend.addEventListener('click', sendMessageCenterTestEmail);
+      els.messageCenterSendSelected.addEventListener('click', sendSelectedMessages);
+      els.messageCenterList.addEventListener('click', handleMessageCenterListClick);
       els.readerDefaultBtn.addEventListener('click', function() { setReaderMode('default'); });
       els.readerBeigeBtn.addEventListener('click', function() { setReaderMode('beige'); });
       els.readerDarkBtn.addEventListener('click', function() { setReaderMode('dark'); });
@@ -1459,6 +1884,9 @@
 
     async function selectStudent(studentId) {
       if (!studentId) return;
+      if (state.selectedStudent && String(studentId) !== String(state.selectedStudentId)) {
+        await flushPendingCommentSaves();
+      }
       clearError();
       setSaveState('Loading', 'saving');
       state.selectedStudentId = studentId;
@@ -1467,6 +1895,7 @@
         var response = await apiGet('getStudentDetails', { studentId: studentId });
         if (!response.ok) return showError(response.message || 'Unable to load student.');
         state.selectedStudent = response.student;
+        resetCommentDraftState(state.selectedStudent);
         state.settings = response.settings || state.settings || {};
         if (response.rubric) state.rubric = response.rubric;
         syncPrimeThresholdUi();
@@ -1622,6 +2051,9 @@
         var selectedBand = (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); });
         var hasScore = score !== '';
         var collapsed = hasScore && state.rubricCollapsed[criterion.key] === true;
+        var scoreStateText = getRubricHeaderScoreStateText(score, selectedBand);
+        var scorePointsText = getRubricHeaderPointsText(score, criterion.max);
+        var scorePointsClass = getRubricScorePointsClass(score, criterion.max);
         var article = document.createElement('article');
         article.className = 'rubric-card' + (collapsed ? ' collapsed' : '');
         article.setAttribute('data-criterion', criterion.key);
@@ -1632,7 +2064,8 @@
               '<div class="subtle">0-' + escapeHtml(String(criterion.max)) + ' points</div>' +
             '</div>' +
             '<div class="rubric-head-actions">' +
-              '<span class="score-state">' + (selectedBand ? escapeHtml(selectedBand.label) : score !== '' ? 'Custom score' : 'No score') + '</span>' +
+              '<span class="' + (selectedBand ? 'selected-band-chip score-state' : 'score-state') + '">' + escapeHtml(scoreStateText) + '</span>' +
+              '<span class="score-state score-points ' + escapeAttr(scorePointsClass) + '">' + escapeHtml(scorePointsText) + '</span>' +
               (hasScore ? '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>' : '') +
             '</div>' +
           '</div>' +
@@ -1653,8 +2086,12 @@
             '<label class="score-field">' +
               '<span>' + escapeHtml(criterion.title) + ' Comment</span>' +
               '<textarea class="field-textarea criterion-comment" rows="2" data-criterion-comment="' + escapeAttr(criterion.key) + '" placeholder="Targeted feedback for ' + escapeAttr(criterion.title) + '...">' +
-                escapeHtml((student.criterionComments && student.criterionComments[criterion.key]) || '') +
+                escapeHtml(getDraftCriterionCommentValue(student, criterion.key)) +
               '</textarea>' +
+              '<div class="comment-save-row">' +
+                '<button type="button" class="secondary-btn criterion-comment-save-btn' + (state.commentSaveFeedback.criteria[criterion.key] ? ' is-saved' : '') + '" data-save-criterion-comment="' + escapeAttr(criterion.key) + '">' + (state.commentSaveFeedback.criteria[criterion.key] ? 'Saved' : 'Save Comment') + '</button>' +
+                '<span class="comment-save-status' + (state.unsavedComments.criteria[criterion.key] ? ' unsaved' : state.commentSaveFeedback.criteria[criterion.key] ? ' saved' : '') + '" data-comment-save-status="' + escapeAttr(criterion.key) + '">' + (state.unsavedComments.criteria[criterion.key] ? 'Unsaved comment' : state.commentSaveFeedback.criteria[criterion.key] ? 'Saved' : '') + '</span>' +
+              '</div>' +
             '</label>' +
           '</div>';
         els.rubricList.appendChild(article);
@@ -1670,7 +2107,7 @@
       return '' +
         '<article class="summary-card">' +
           state.rubric.map(function(criterion) {
-            return '<div class="score-summary-row"><span>' + escapeHtml(criterion.title) + '</span><strong>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</strong></div>';
+            return '<div class="score-summary-row"><span>' + escapeHtml(criterion.title) + '</span><strong data-summary-criterion="' + escapeAttr(criterion.key) + '">' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</strong></div>';
           }).join('') +
           '<div class="score-summary-row" style="justify-content:space-between;align-items:flex-end;border-top:1px solid var(--hairline);padding-top:0.6rem;">' +
             '<div><div class="eyebrow">Overall</div><div class="summary-total number-font">' + escapeHtml(String(total === '' ? '-' : total)) + ' / ' + getCurrentTotalMax() + '</div><div class="subtle">' + (percent === '' ? 'No percent yet' : '(' + percent + '%)') + '</div></div>' +
@@ -1678,12 +2115,92 @@
             '<button class="text-btn no-sub-btn" id="noSubmissionBtn" title="' + escapeAttr(student.status === 'No Submission' ? 'Clear No Submission' : 'Mark No Submission') + '"><i class="ti ' + (student.status === 'No Submission' ? 'ti-file-check' : 'ti-file-x') + '"></i></button>' +
           '</div>' +
           ((percent !== '' && Number(percent) < getPrimeTriggerThreshold()) ? '<div class="prime-notice">PRIME triggers below ' + getPrimeTriggerThreshold() + '% when the threshold is set to ' + getPrimeDisplayThreshold() + '%.</div>' : '') +
-          '<label class="score-field"><span>Overall Comment</span><textarea class="field-textarea" id="overallCommentInput" placeholder="Teacher feedback...">' + escapeHtml(student.comment || '') + '</textarea></label>' +
+          '<label class="score-field"><span>Overall Comment</span><textarea class="field-textarea" id="overallCommentInput" placeholder="Teacher feedback...">' + escapeHtml(getDraftOverallCommentValue(student)) + '</textarea><div class="comment-save-row"><button type="button" class="secondary-btn' + (state.commentSaveFeedback.overall ? ' is-saved' : '') + '" id="saveOverallCommentBtn">' + (state.commentSaveFeedback.overall ? 'Saved' : 'Save Overall Comment') + '</button><span class="comment-save-status' + (state.unsavedComments.overall ? ' unsaved' : state.commentSaveFeedback.overall ? ' saved' : '') + '" id="overallCommentSaveStatus">' + (state.unsavedComments.overall ? 'Unsaved comment' : state.commentSaveFeedback.overall ? 'Saved' : '') + '</span></div></label>' +
           '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;">' +
             '<button class="primary-btn" id="saveNextBtn"><i class="ti ti-arrow-right"></i> Save & Next</button>' +
             '<button class="secondary-btn" id="exportCsvBtn"><i class="ti ti-download"></i> Export CSV</button>' +
           '</div>' +
         '</article>';
+    }
+
+    function syncRubricCardUi(criterionKey) {
+      var article = els.rubricList.querySelector('[data-criterion="' + criterionKey + '"]');
+      if (!article) return;
+      var criterion = state.rubric.find(function(item) { return item.key === criterionKey; });
+      if (!criterion) return;
+      var score = scoreOrBlank(state.selectedStudent.scores[criterionKey]);
+      var selectedBand = score !== '' ? (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); }) : null;
+      var collapsed = score !== '' && state.rubricCollapsed[criterionKey] === true;
+
+      Array.prototype.slice.call(article.querySelectorAll('[data-band-score]')).forEach(function(card) {
+        var isSelected = score !== '' && Number(card.getAttribute('data-band-score')) === Number(score);
+        card.classList.toggle('selected', isSelected);
+      });
+
+      var head = article.querySelector('.rubric-card-head');
+      if (head) head.classList.toggle('collapsible', score !== '');
+
+      var stateEl = article.querySelector('.score-state');
+      if (stateEl) {
+        stateEl.textContent = getRubricHeaderScoreStateText(score, selectedBand);
+        stateEl.classList.toggle('selected-band-chip', !!selectedBand);
+      }
+
+      var pointsEl = article.querySelector('.score-points');
+      if (pointsEl) {
+        pointsEl.textContent = getRubricHeaderPointsText(score, criterion.max);
+        pointsEl.classList.remove('full-points', 'partial-points', 'zero-points');
+        var pointsClass = getRubricScorePointsClass(score, criterion.max);
+        if (pointsClass) pointsEl.classList.add(pointsClass);
+      }
+
+      var input = article.querySelector('[data-score-input="' + criterionKey + '"]');
+      if (input) input.value = score === '' ? '' : score;
+
+      article.classList.toggle('collapsed', collapsed);
+      var actions = article.querySelector('.rubric-head-actions');
+      if (actions) {
+        var chevronWrap = actions.querySelector('span:last-child');
+        if (score === '') {
+          if (chevronWrap && chevronWrap.querySelector('.ti')) chevronWrap.remove();
+        } else {
+          if (!chevronWrap || !chevronWrap.querySelector('.ti')) {
+            actions.insertAdjacentHTML('beforeend', '<span><i class="ti ti-chevron-' + (collapsed ? 'down' : 'up') + '"></i></span>');
+          } else {
+            var chevron = chevronWrap.querySelector('.ti');
+            chevron.className = 'ti ti-chevron-' + (collapsed ? 'down' : 'up');
+          }
+        }
+      }
+
+      var summaryCard = els.rubricList.querySelector('.summary-card');
+      if (summaryCard) {
+        var total = computeLocalTotal(state.selectedStudent.scores);
+        var totalEl = summaryCard.querySelector('.summary-total');
+        if (totalEl) totalEl.textContent = (total === '' ? '-' : total) + ' / ' + getCurrentTotalMax();
+        var percentEl = summaryCard.querySelector('.subtle');
+        if (percentEl) {
+          var percent = total === '' ? '' : round1(total / getCurrentTotalMax() * 100);
+          percentEl.textContent = percent === '' ? 'No percent yet' : '(' + percent + '%)';
+        }
+        state.rubric.forEach(function(item) {
+          var rowEl = summaryCard.querySelector('[data-summary-criterion="' + item.key + '"]');
+          if (!rowEl) return;
+          var itemScore = scoreOrBlank(state.selectedStudent.scores[item.key]);
+          rowEl.textContent = (itemScore === '' ? '-' : itemScore) + '/' + item.max;
+        });
+        var primeNotice = summaryCard.querySelector('.prime-notice');
+        var percentValue = total === '' ? '' : round1(total / getCurrentTotalMax() * 100);
+        var shouldShowPrime = percentValue !== '' && Number(percentValue) < getPrimeTriggerThreshold();
+        if (primeNotice) {
+          primeNotice.classList.toggle('hidden', !shouldShowPrime);
+        } else if (shouldShowPrime) {
+          var overallCommentInput = summaryCard.querySelector('#overallCommentInput');
+          if (overallCommentInput) {
+            overallCommentInput.insertAdjacentHTML('beforebegin', '<div class="prime-notice">PRIME triggers below ' + getPrimeTriggerThreshold() + '% when the threshold is set to ' + getPrimeDisplayThreshold() + '%.</div>');
+          }
+        }
+      }
     }
 
     function renderPrimePanel(student) {
@@ -1719,22 +2236,21 @@
           var key = button.getAttribute('data-criterion-key');
           var value = Number(button.getAttribute('data-band-score'));
           var current = state.selectedStudent.scores[key];
-          if (current !== '' && Number(current) === value) {
-            state.selectedStudent.scores[key] = '';
-            state.rubricCollapsed[key] = false;
-          } else {
-            state.selectedStudent.scores[key] = value;
-            state.rubricCollapsed[key] = true;
-          }
-          renderRubric(state.selectedStudent);
-          scheduleSave();
+          var clearing = current !== '' && Number(current) === value;
+          state.selectedStudent.scores[key] = clearing ? '' : value;
+          state.rubricCollapsed[key] = !clearing;
+          syncRubricCardUi(key);
+          markStudentChanged();
+          scheduleScoreSave(key);
         });
       });
       Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-score-input]')).forEach(function(input) {
         input.addEventListener('change', function() {
           var key = input.getAttribute('data-score-input');
           state.selectedStudent.scores[key] = input.value === '' ? '' : Number(input.value);
-          scheduleSave();
+          syncRubricCardUi(key);
+          markStudentChanged();
+          scheduleScoreSave(key);
         });
       });
       Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
@@ -1742,14 +2258,36 @@
           var key = textarea.getAttribute('data-criterion-comment');
           if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
           state.selectedStudent.criterionComments[key] = textarea.value;
-          scheduleSave();
+          state.commentDrafts.criteria[key] = textarea.value;
+          state.unsavedComments.criteria[key] = true;
+          clearCommentSavedFeedback({ criterionKey: key });
+          markCommentChanged();
+          updateCommentSaveUi({ criterionKey: key });
+        });
+      });
+      Array.prototype.slice.call(els.rubricList.querySelectorAll('[data-save-criterion-comment]')).forEach(function(button) {
+        button.addEventListener('click', function() {
+          var key = button.getAttribute('data-save-criterion-comment');
+          syncLiveStudentDraftFromDom();
+          saveCurrentStudent({ source: 'manual-comment', render: false, commentTarget: { type: 'criterion', key: key } });
         });
       });
       var overallCommentInput = document.getElementById('overallCommentInput');
       if (overallCommentInput) {
         overallCommentInput.addEventListener('input', function() {
           state.selectedStudent.comment = overallCommentInput.value;
-          scheduleSave();
+          state.commentDrafts.overall = overallCommentInput.value;
+          state.unsavedComments.overall = true;
+          clearCommentSavedFeedback({ overall: true });
+          markCommentChanged();
+          updateCommentSaveUi({ overall: true });
+        });
+      }
+      var saveOverallCommentBtn = document.getElementById('saveOverallCommentBtn');
+      if (saveOverallCommentBtn) {
+        saveOverallCommentBtn.addEventListener('click', function() {
+          syncLiveStudentDraftFromDom();
+          saveCurrentStudent({ source: 'manual-comment', render: false, commentTarget: { type: 'overall' } });
         });
       }
       var flagBtn = document.getElementById('flagBtn');
@@ -1757,13 +2295,17 @@
         flagBtn.addEventListener('click', function() {
           state.selectedStudent.flagged = !state.selectedStudent.flagged;
           renderRubric(state.selectedStudent);
-          scheduleSave();
+          markStudentChanged();
+          scheduleScoreSave('flagged');
         });
       }
       var noSubmissionBtn = document.getElementById('noSubmissionBtn');
       if (noSubmissionBtn) noSubmissionBtn.addEventListener('click', toggleNoSubmission);
       var saveNextBtn = document.getElementById('saveNextBtn');
-      if (saveNextBtn) saveNextBtn.addEventListener('click', async function() { await saveCurrentStudent(); moveStudent(1); });
+      if (saveNextBtn) saveNextBtn.addEventListener('click', async function() {
+        await flushPendingCommentSaves();
+        await moveStudent(1);
+      });
       var exportBtn = document.getElementById('exportCsvBtn');
       if (exportBtn) exportBtn.addEventListener('click', exportCsv);
       var primeStatus = document.getElementById('primeStatusSelect');
@@ -1778,49 +2320,176 @@
       if (printPrimeBtn) printPrimeBtn.addEventListener('click', printPrimeSheet);
     }
 
-    function scheduleSave() {
+    function markStudentChanged() {
+      state.changeVersion += 1;
       state.dirty = true;
       setSaveState('Saving', 'saving');
-      clearTimeout(state.saveTimer);
-      state.saveTimer = setTimeout(saveCurrentStudent, 800);
+      return state.changeVersion;
     }
 
-    async function saveCurrentStudent() {
+    function markCommentChanged() {
+      state.changeVersion += 1;
+      state.dirty = true;
+      setSaveState('Unsaved comments', 'error');
+      return state.changeVersion;
+    }
+
+    function scheduleScoreSave(timerKey) {
+      clearTimeout(state.scoreSaveTimers[timerKey]);
+      state.scoreSaveTimers[timerKey] = setTimeout(function() {
+        delete state.scoreSaveTimers[timerKey];
+        saveCurrentStudent({ source: 'score' });
+      }, 200);
+    }
+
+    function mergePendingSaveOptions(existing, incoming) {
+      existing = existing || {};
+      incoming = incoming || {};
+      if (existing.source === 'flush' || incoming.source === 'flush') return { source: 'flush' };
+      if (existing.source === 'manual-comment' || incoming.source === 'manual-comment') {
+        if (
+          existing.source === 'manual-comment' &&
+          incoming.source === 'manual-comment' &&
+          existing.commentTarget &&
+          incoming.commentTarget &&
+          (
+            existing.commentTarget.type !== incoming.commentTarget.type ||
+            existing.commentTarget.key !== incoming.commentTarget.key
+          )
+        ) {
+          return { source: 'flush' };
+        }
+        return incoming.source === 'manual-comment' ? incoming : existing;
+      }
+      if (existing.source === 'score' || incoming.source === 'score') return { source: 'score' };
+      return { source: incoming.source || existing.source || 'comment' };
+    }
+
+    function queuePendingStudentSave(options) {
+      state.pendingSave = true;
+      state.pendingSaveOptions = mergePendingSaveOptions(state.pendingSaveOptions, options);
+    }
+
+    function waitForStudentSaveIdle() {
+      if (!state.isSaving && !state.pendingSave) return Promise.resolve();
+      return new Promise(function(resolve) {
+        state.saveIdleResolvers.push(resolve);
+      });
+    }
+
+    function resolveStudentSaveIdle() {
+      var resolvers = state.saveIdleResolvers.slice();
+      state.saveIdleResolvers = [];
+      resolvers.forEach(function(resolve) { resolve(); });
+    }
+
+    function isCommentField(element) {
+      return !!(element && element.tagName === 'TEXTAREA' && (element.id === 'overallCommentInput' || element.hasAttribute('data-criterion-comment')));
+    }
+
+    function syncLiveStudentDraftFromDom() {
       if (!state.selectedStudent) return;
-      if (state.isSaving) {
-        // A save is already in flight — reschedule and wait for it to land
-        clearTimeout(state.saveTimer);
-        state.saveTimer = setTimeout(saveCurrentStudent, 600);
+      var overallCommentInput = document.getElementById('overallCommentInput');
+      if (overallCommentInput) {
+        state.selectedStudent.comment = overallCommentInput.value;
+        state.commentDrafts.overall = overallCommentInput.value;
+      }
+      if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
+      Array.prototype.slice.call(document.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
+        var key = textarea.getAttribute('data-criterion-comment');
+        state.selectedStudent.criterionComments[key] = textarea.value;
+        state.commentDrafts.criteria[key] = textarea.value;
+      });
+    }
+
+    function studentPayload(options) {
+      syncLiveStudentDraftFromDom();
+      options = options || {};
+      var commentPayload = buildCommentPayload(options);
+      return {
+        action: 'saveGrade',
+        studentId: state.selectedStudent.studentId,
+        scores: state.selectedStudent.scores,
+        criterionComments: commentPayload.criteria,
+        comment: commentPayload.overall,
+        flagged: !!state.selectedStudent.flagged,
+        vocabFound: state.selectedStudent.vocabFound || [],
+        vocabMissing: state.selectedStudent.vocabMissing || []
+      };
+    }
+
+    async function flushPendingCommentSaves() {
+      var shouldSave = !!state.dirty;
+      Object.keys(state.scoreSaveTimers).forEach(function(timerKey) {
+        clearTimeout(state.scoreSaveTimers[timerKey]);
+        delete state.scoreSaveTimers[timerKey];
+        shouldSave = true;
+      });
+      if (shouldSave) {
+        await saveCurrentStudent({ source: 'flush' });
         return;
+      }
+      if (state.isSaving || state.pendingSave) await waitForStudentSaveIdle();
+    }
+
+    function handleSaveResponse(response, version, options) {
+      if (!response.ok) {
+        showError(response.message || 'Unable to save.');
+        return;
+      }
+      if (version !== state.changeVersion) return;
+      state.selectedStudent = response.student;
+      commitSavedCommentState(options || {});
+      syncSelectedStudentCommentsFromDrafts();
+      mergeStudentSummary(state.selectedStudent);
+      state.summary = response.summary || state.summary;
+      state.dirty = hasUnsavedComments();
+      renderSummary();
+      renderStudentNav();
+      if ((options && options.render) !== false) {
+        renderStudentDetails();
+      }
+      if (hasUnsavedComments()) setSaveState('Unsaved comments', 'error');
+      else setSaveState('Saved', 'saved');
+      if (options && options.source === 'manual-comment') {
+        showToast(options.commentTarget && options.commentTarget.type === 'overall' ? 'Overall comment saved.' : 'Comment saved.');
+        updateCommentSaveUi(options.commentTarget && options.commentTarget.type === 'overall'
+          ? { overall: true }
+          : { criterionKey: options.commentTarget && options.commentTarget.key });
+      }
+    }
+
+    function handleSaveFailure(err) {
+      setSaveState('Error', 'error');
+      showError(err.message || String(err));
+    }
+
+    async function saveCurrentStudent(options) {
+      if (!state.selectedStudent) return;
+      options = options || {};
+      if (!state.dirty && !state.isSaving && !state.pendingSave) return;
+      if (state.isSaving) {
+        queuePendingStudentSave(options);
+        return waitForStudentSaveIdle();
       }
       state.isSaving = true;
       try {
-        var payload = {
-          action: 'saveGrade',
-          studentId: state.selectedStudent.studentId,
-          scores: state.selectedStudent.scores,
-          criterionComments: state.selectedStudent.criterionComments || {},
-          comment: state.selectedStudent.comment || '',
-          flagged: !!state.selectedStudent.flagged,
-          vocabFound: state.selectedStudent.vocabFound || [],
-          vocabMissing: state.selectedStudent.vocabMissing || []
-        };
-        var response = await apiPost(payload);
-        if (!response.ok) return showError(response.message || 'Unable to save.');
-        state.selectedStudent = response.student;
-        mergeStudentSummary(response.student);
-        state.summary = response.summary || state.summary;
-        state.dirty = false;
-        renderSummary();
-        renderStudentNav();
-        renderStudentDetails();
-        setSaveState('Saved', 'saved');
-        showToast('Saved.');
+        var activeOptions = options;
+        while (true) {
+          var version = state.changeVersion;
+          syncLiveStudentDraftFromDom();
+          var response = await apiPost(studentPayload(activeOptions));
+          handleSaveResponse(response, version, activeOptions);
+          if (!state.pendingSave) break;
+          activeOptions = state.pendingSaveOptions || {};
+          state.pendingSave = false;
+          state.pendingSaveOptions = null;
+        }
       } catch (err) {
-        setSaveState('Error', 'error');
-        showError(err.message || String(err));
+        handleSaveFailure(err);
       } finally {
         state.isSaving = false;
+        resolveStudentSaveIdle();
       }
     }
 
@@ -1856,6 +2525,7 @@
 
     async function toggleNoSubmission() {
       if (!state.selectedStudent) return;
+      await flushPendingCommentSaves();
       var next = state.selectedStudent.status !== 'No Submission';
       try {
         var response = await apiPost({
@@ -1876,7 +2546,8 @@
       }
     }
 
-    function togglePrimeMode() {
+    async function togglePrimeMode() {
+      await flushPendingCommentSaves();
       var entering = !state.primeMode;
       if (entering && !state.students.some(function(student) { return student.primeEligible === 'YES'; })) {
         showToast('No students are currently PRIME eligible.');
@@ -1884,17 +2555,23 @@
       }
       state.primeMode = entering;
       els.primeModeBtn.classList.toggle('active', state.primeMode);
-      els.primeModeBtn.innerHTML = '<i class="ti ti-pencil-plus"></i> ' + (state.primeMode ? 'PRIME Mode' : 'PRIME');
+      els.primeModeBtn.innerHTML = state.primeMode
+        ? '<i class="ti ti-pencil-plus"></i> Disable'
+        : '<i class="ti ti-pencil-plus"></i> Enable';
+      document.getElementById('primeModeNote').textContent = state.primeMode
+        ? 'On - PRIME-eligible only'
+        : 'Off - show all students';
       renderStudentNav();
       if (state.primeMode) {
         var firstPrime = visibleStudents()[0];
-        if (firstPrime) selectStudent(firstPrime.studentId);
+        if (firstPrime) await selectStudent(firstPrime.studentId);
       } else if (state.selectedStudent) {
         renderStudentDetails();
       }
     }
 
     async function enterAnalyticsMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'analytics';
       updateModeVisibility();
@@ -1908,7 +2585,8 @@
       }
     }
 
-    function enterSchoologyMode() {
+    async function enterSchoologyMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'schoology';
       updateModeVisibility();
@@ -1995,6 +2673,466 @@
       });
     }
 
+    function cloneCriterionComments(source) {
+      return Object.assign({}, source || {});
+    }
+
+    function getRubricHeaderScoreStateText(score, selectedBand) {
+      if (selectedBand) return selectedBand.label;
+      if (score !== '') return 'Custom score';
+      return 'Ungraded';
+    }
+
+    function getRubricHeaderPointsText(score, max) {
+      if (score === '') return '-- / ' + max;
+      return String(score) + ' / ' + String(max);
+    }
+
+    function getRubricScorePointsClass(score, max) {
+      if (score === '') return '';
+      var numericScore = Number(score);
+      var numericMax = Number(max);
+      if (numericScore <= 0) return 'zero-points';
+      if (numericScore >= numericMax) return 'full-points';
+      return 'partial-points';
+    }
+
+    function getDraftCriterionCommentValue(student, key) {
+      if (Object.prototype.hasOwnProperty.call(state.commentDrafts.criteria, key)) return state.commentDrafts.criteria[key];
+      return (student.criterionComments && student.criterionComments[key]) || '';
+    }
+
+    function getDraftOverallCommentValue(student) {
+      if (state.commentDrafts.overall !== undefined && state.commentDrafts.overall !== null) return state.commentDrafts.overall;
+      return student.comment || '';
+    }
+
+    function resetCommentDraftState(student) {
+      clearAllCommentSavedFeedback();
+      state.savedCommentSnapshot = {
+        overall: (student && student.comment) || '',
+        criteria: cloneCriterionComments(student && student.criterionComments)
+      };
+      state.commentDrafts = {
+        overall: state.savedCommentSnapshot.overall,
+        criteria: cloneCriterionComments(state.savedCommentSnapshot.criteria)
+      };
+      state.unsavedComments = {
+        overall: false,
+        criteria: {}
+      };
+      state.commentSaveFeedback = {
+        overall: false,
+        criteria: {}
+      };
+    }
+
+    function buildCommentPayload(options) {
+      options = options || {};
+      var commentPayload = {
+        overall: state.savedCommentSnapshot.overall || '',
+        criteria: cloneCriterionComments(state.savedCommentSnapshot.criteria)
+      };
+      if (options.source === 'flush') {
+        commentPayload.overall = state.commentDrafts.overall || '';
+        commentPayload.criteria = cloneCriterionComments(state.commentDrafts.criteria);
+        return commentPayload;
+      }
+      if (options.source === 'manual-comment' && options.commentTarget) {
+        if (options.commentTarget.type === 'overall') {
+          commentPayload.overall = state.commentDrafts.overall || '';
+        } else if (options.commentTarget.type === 'criterion' && options.commentTarget.key) {
+          commentPayload.criteria[options.commentTarget.key] = state.commentDrafts.criteria[options.commentTarget.key] || '';
+        }
+        return commentPayload;
+      }
+      return commentPayload;
+    }
+
+    function hasUnsavedComments() {
+      if (state.unsavedComments.overall) return true;
+      return Object.keys(state.unsavedComments.criteria || {}).some(function(key) {
+        return !!state.unsavedComments.criteria[key];
+      });
+    }
+
+    function commitSavedCommentState(options) {
+      options = options || {};
+      if (options.source === 'flush') {
+        state.savedCommentSnapshot = {
+          overall: state.commentDrafts.overall || '',
+          criteria: cloneCriterionComments(state.commentDrafts.criteria)
+        };
+        state.unsavedComments = {
+          overall: false,
+          criteria: {}
+        };
+        state.commentSaveFeedback = {
+          overall: false,
+          criteria: {}
+        };
+        return;
+      }
+      if (options.source === 'manual-comment' && options.commentTarget) {
+        if (options.commentTarget.type === 'overall') {
+          state.savedCommentSnapshot.overall = state.commentDrafts.overall || '';
+          state.unsavedComments.overall = false;
+          triggerCommentSavedFeedback({ overall: true });
+          return;
+        }
+        if (options.commentTarget.type === 'criterion' && options.commentTarget.key) {
+          state.savedCommentSnapshot.criteria[options.commentTarget.key] = state.commentDrafts.criteria[options.commentTarget.key] || '';
+          state.unsavedComments.criteria[options.commentTarget.key] = false;
+          triggerCommentSavedFeedback({ criterionKey: options.commentTarget.key });
+        }
+      }
+    }
+
+    function syncSelectedStudentCommentsFromDrafts() {
+      if (!state.selectedStudent) return;
+      if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
+      state.selectedStudent.comment = state.commentDrafts.overall || '';
+      Object.keys(state.commentDrafts.criteria || {}).forEach(function(key) {
+        state.selectedStudent.criterionComments[key] = state.commentDrafts.criteria[key];
+      });
+    }
+
+    function clearCommentSavedFeedback(target) {
+      target = target || {};
+      if (target.overall) {
+        if (state.commentSaveFeedbackTimers.overall) clearTimeout(state.commentSaveFeedbackTimers.overall);
+        state.commentSaveFeedbackTimers.overall = null;
+        state.commentSaveFeedback.overall = false;
+        return;
+      }
+      if (target.criterionKey) {
+        if (state.commentSaveFeedbackTimers.criteria[target.criterionKey]) clearTimeout(state.commentSaveFeedbackTimers.criteria[target.criterionKey]);
+        state.commentSaveFeedbackTimers.criteria[target.criterionKey] = null;
+        state.commentSaveFeedback.criteria[target.criterionKey] = false;
+      }
+    }
+
+    function clearAllCommentSavedFeedback() {
+      clearCommentSavedFeedback({ overall: true });
+      Object.keys(state.commentSaveFeedbackTimers.criteria || {}).forEach(function(key) {
+        clearCommentSavedFeedback({ criterionKey: key });
+      });
+    }
+
+    function triggerCommentSavedFeedback(target) {
+      target = target || {};
+      if (target.overall) {
+        clearCommentSavedFeedback({ overall: true });
+        state.commentSaveFeedback.overall = true;
+        state.commentSaveFeedbackTimers.overall = setTimeout(function() {
+          state.commentSaveFeedback.overall = false;
+          state.commentSaveFeedbackTimers.overall = null;
+          updateCommentSaveUi({ overall: true });
+        }, 1800);
+        return;
+      }
+      if (target.criterionKey) {
+        clearCommentSavedFeedback({ criterionKey: target.criterionKey });
+        state.commentSaveFeedback.criteria[target.criterionKey] = true;
+        state.commentSaveFeedbackTimers.criteria[target.criterionKey] = setTimeout(function() {
+          state.commentSaveFeedback.criteria[target.criterionKey] = false;
+          state.commentSaveFeedbackTimers.criteria[target.criterionKey] = null;
+          updateCommentSaveUi({ criterionKey: target.criterionKey });
+        }, 1800);
+      }
+    }
+
+    function updateCommentSaveUi(target) {
+      target = target || {};
+      if (target.overall) {
+        var overallStatus = document.getElementById('overallCommentSaveStatus');
+        var overallButton = document.getElementById('saveOverallCommentBtn');
+        if (overallStatus) {
+          overallStatus.textContent = state.unsavedComments.overall ? 'Unsaved comment' : state.commentSaveFeedback.overall ? 'Saved' : '';
+          overallStatus.className = 'comment-save-status' + (state.unsavedComments.overall ? ' unsaved' : state.commentSaveFeedback.overall ? ' saved' : '');
+        }
+        if (overallButton) {
+          overallButton.textContent = state.commentSaveFeedback.overall ? 'Saved' : 'Save Overall Comment';
+          overallButton.classList.toggle('is-saved', !!state.commentSaveFeedback.overall);
+        }
+        return;
+      }
+      if (target.criterionKey) {
+        var button = document.querySelector('[data-save-criterion-comment="' + target.criterionKey + '"]');
+        var status = document.querySelector('[data-comment-save-status="' + target.criterionKey + '"]');
+        if (status) {
+          status.textContent = state.unsavedComments.criteria[target.criterionKey] ? 'Unsaved comment' : state.commentSaveFeedback.criteria[target.criterionKey] ? 'Saved' : '';
+          status.className = 'comment-save-status' + (state.unsavedComments.criteria[target.criterionKey] ? ' unsaved' : state.commentSaveFeedback.criteria[target.criterionKey] ? ' saved' : '');
+        }
+        if (button) {
+          button.textContent = state.commentSaveFeedback.criteria[target.criterionKey] ? 'Saved' : 'Save Comment';
+          button.classList.toggle('is-saved', !!state.commentSaveFeedback.criteria[target.criterionKey]);
+        }
+      }
+    }
+
+    async function openMessageCenter() {
+      await flushPendingCommentSaves();
+      closeSettingsMenu();
+      state.messageCenter.loading = true;
+      state.messageCenter.selectedKeys = new Set();
+      state.messageCenter.activeKey = '';
+      els.messageCenterIncludeSent.checked = state.messageCenter.includeAlreadySent;
+      els.messageCenterShowIncomplete.checked = state.messageCenter.showIncomplete;
+      els.messageCenterStatus.textContent = 'Loading message data...';
+      els.messageCenterList.innerHTML = '<div class="mc-loading-spinner"><span class="mc-spinner-ring" aria-hidden="true"></span><span>Loading student data...</span></div>';
+      els.messageCenterPreviewTo.textContent = 'Select a student';
+      els.messageCenterPreviewSubject.textContent = '-';
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(null);
+      els.messageCenterPreviewFrame.srcdoc = '<p style="font-family:Arial,sans-serif;color:#888;padding:2rem;text-align:center;">Choose a student to preview the full email.</p>';
+      els.messageCenterModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      apiPost({ action: 'getMessageCenterData', teacherKey: state.teacherKey }).then(function(response) {
+        state.messageCenter.loading = false;
+        if (!response.ok) return showError(response.message || 'Unable to load Message Center data.');
+        state.messageCenter.students = response.students || [];
+        els.messageCenterSignoff.value = response.defaultSignoff || 'Mr. Castaneda';
+        els.messageCenterStatus.textContent = 'Test emails go to ' + (response.testRecipient || 'the active teacher account') + '.';
+        renderMessageCenterList();
+        var firstEligible = state.messageCenter.students.find(function(student) { return student.eligible; });
+        if (firstEligible) previewMessageStudent(messageKey(firstEligible));
+      }).catch(function(err) {
+        state.messageCenter.loading = false;
+        hideTeacherCommentBox();
+        showError(err.message || String(err));
+      });
+    }
+
+    function closeMessageCenter() {
+      els.messageCenterModal.classList.add('hidden');
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(null);
+      document.body.style.overflow = '';
+    }
+
+    function renderMessageCenterList() {
+      var mc = state.messageCenter;
+      mc.selectedKeys = new Set(mc.students.filter(isMessageSelectable).filter(function(student) {
+        return mc.selectedKeys.has(messageKey(student));
+      }).map(messageKey));
+      var visible = mc.students.filter(function(student) {
+        return mc.showIncomplete || student.eligible;
+      });
+      els.messageCenterList.innerHTML = '';
+      els.messageCenterCount.textContent = visible.length + ' student' + (visible.length === 1 ? '' : 's');
+      updateMessageSelectionCount();
+      if (!visible.length) {
+        els.messageCenterList.innerHTML = '<div class="notice">No completed student messages yet. Turn on "Show incomplete students" to see the rest.</div>';
+        return;
+      }
+      visible.forEach(function(student) {
+        var key = messageKey(student);
+        var selected = mc.selectedKeys.has(key);
+        var alreadySent = student.emailSent === 'Yes';
+        var selectable = isMessageSelectable(student);
+        var isPrime = student.primeEligible === 'YES';
+        var row = document.createElement('article');
+        row.className = 'message-student-row ' + (student.eligible ? '' : 'is-incomplete ') + (isPrime ? 'prime-eligible ' : '') + (key === mc.activeKey ? 'active' : '');
+        row.setAttribute('data-message-key', key);
+        row.innerHTML = '' +
+          '<label class="message-row-check" aria-label="Select ' + escapeAttr(student.name) + '">' +
+            '<input type="checkbox" data-message-select ' + (selected ? 'checked ' : '') + (selectable ? '' : 'disabled') + '>' +
+          '</label>' +
+          '<button class="message-row-main" type="button" data-message-preview>' +
+            '<span class="message-row-name">' + escapeHtml(student.name || 'Unnamed student') + (isPrime ? ' <span class="prime-badge"><i class="ti ti-pencil-plus"></i> PRIME</span>' : '') + '</span>' +
+            '<span class="message-row-meta">Period ' + escapeHtml(student.period || '-') + ' • ' + escapeHtml(student.status || 'Ungraded') + '</span>' +
+            '<span class="message-row-meta">' + escapeHtml(student.email || 'No email on file') + '</span>' +
+          '</button>' +
+          '<div class="message-row-score">' +
+            '<strong>' + (student.totalScore === '' ? '-' : escapeHtml(String(student.totalScore))) + '/' + getCurrentTotalMax() + '</strong>' +
+            '<span>' + (student.percent === '' ? '-' : escapeHtml(String(student.percent)) + '%') + '</span>' +
+          '</div>' +
+          '<div class="message-row-status">' +
+            (alreadySent
+              ? '<span class="email-sent-badge"><i class="ti ti-circle-check"></i> Sent ' + escapeHtml(emailSentDateStr(student.emailSentAt)) + '</span>'
+              : student.eligible
+                ? '<span class="message-unsent-badge">Ready</span>'
+                : '<span class="message-incomplete-badge">Incomplete</span>') +
+          '</div>';
+        els.messageCenterList.appendChild(row);
+      });
+    }
+
+    function handleMessageCenterListClick(event) {
+      var row = event.target.closest('[data-message-key]');
+      if (!row) return;
+      var key = row.getAttribute('data-message-key');
+      if (event.target.matches('[data-message-select]')) {
+        var student = getMessageStudentByKey(key);
+        if (!student || !isMessageSelectable(student)) return;
+        if (event.target.checked) state.messageCenter.selectedKeys.add(key);
+        else state.messageCenter.selectedKeys.delete(key);
+        updateMessageSelectionCount();
+        return;
+      }
+      previewMessageStudent(key);
+    }
+
+    function previewMessageStudent(key) {
+      var student = getMessageStudentByKey(key);
+      if (!student) return;
+      state.messageCenter.activeKey = key;
+      renderMessageCenterList();
+      els.messageCenterPreviewTo.textContent = 'Loading...';
+      els.messageCenterPreviewSubject.textContent = '-';
+      hideTeacherCommentBox();
+      renderMessageCenterPrimeNotice(student);
+      els.messageCenterPreviewFrame.srcdoc = '<p style="font-family:Arial,sans-serif;color:#888;padding:2rem;text-align:center;">Loading full email preview...</p>';
+      apiPost({
+        action: 'getMessageCenterPreview',
+        studentId: key,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        if (!response.ok) return showError(response.message || 'Unable to load email preview.');
+        els.messageCenterPreviewTo.textContent = response.to || '(no email found)';
+        els.messageCenterPreviewSubject.textContent = response.subject || '-';
+        els.messageCenterPreviewFrame.srcdoc = response.htmlContent || '';
+        showTeacherCommentBox(response.finalComment || '');
+        renderMessageCenterPrimeNotice(student);
+      }).catch(function(err) {
+        showError(err.message || String(err));
+      });
+    }
+
+    function messageKey(student) {
+      return student.studentId;
+    }
+
+    function isMessageSelectable(student) {
+      return !!(student && student.eligible && (state.messageCenter.includeAlreadySent || student.emailSent !== 'Yes'));
+    }
+
+    function selectAllEligibleMessages() {
+      state.messageCenter.selectedKeys = new Set(state.messageCenter.students.filter(isMessageSelectable).map(messageKey));
+      renderMessageCenterList();
+    }
+
+    function selectUnsentMessages() {
+      state.messageCenter.selectedKeys = new Set(state.messageCenter.students.filter(function(student) {
+        return student.eligible && student.emailSent !== 'Yes';
+      }).map(messageKey));
+      renderMessageCenterList();
+    }
+
+    function clearMessageSelection() {
+      state.messageCenter.selectedKeys = new Set();
+      renderMessageCenterList();
+    }
+
+    function sendSelectedMessages() {
+      var selected = getSelectedMessageStudents();
+      if (!selected.length) return showToast('Select at least one eligible student.');
+      var alreadySent = selected.filter(function(student) { return student.emailSent === 'Yes'; }).length;
+      var newSends = selected.length - alreadySent;
+      var includeSent = state.messageCenter.includeAlreadySent;
+      var warning = includeSent && alreadySent
+        ? '\n\nDuplicate warning: ' + alreadySent + ' already-sent student' + (alreadySent === 1 ? '' : 's') + ' will receive another email.'
+        : '\n\nAlready-sent students are skipped by default unless "Include already sent students" is enabled.';
+      var confirmed = window.confirm(
+        'Send rubric emails for ' + selected.length + ' selected student' + (selected.length === 1 ? '' : 's') + '?\n\n' +
+        'New sends: ' + newSends + '\nAlready sent: ' + alreadySent + warning
+      );
+      if (!confirmed) return;
+      els.messageCenterSendSelected.disabled = true;
+      els.messageCenterStatus.textContent = 'Sending selected messages...';
+      apiPost({
+        action: 'sendMessageCenterBatch',
+        students: selected.map(function(student) { return { studentId: student.studentId }; }),
+        includeAlreadySent: state.messageCenter.includeAlreadySent,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        els.messageCenterSendSelected.disabled = false;
+        if (!response.ok) return showError(response.message || 'Unable to send selected messages.');
+        state.messageCenter.students = response.students || state.messageCenter.students;
+        state.messageCenter.selectedKeys = new Set();
+        renderMessageCenterList();
+        els.messageCenterStatus.textContent = 'Sent ' + response.sentCount + '. Skipped ' + response.skippedAlreadySentCount + ' already sent, ' + response.skippedIncompleteCount + ' incomplete, ' + response.missingEmailCount + ' missing email. Errors: ' + response.errorsCount + '.';
+        showToast('Message Center sent ' + response.sentCount + ' email' + (response.sentCount === 1 ? '' : 's') + '.');
+        loadAppData();
+      }).catch(function(err) {
+        els.messageCenterSendSelected.disabled = false;
+        showError(err.message || String(err));
+      });
+    }
+
+    function sendMessageCenterTestEmail() {
+      var active = getMessageStudentByKey(state.messageCenter.activeKey);
+      var fallback = state.messageCenter.students.find(function(student) { return student.eligible; });
+      var target = active && active.eligible ? active : fallback;
+      if (!target) return showToast('No completed student is available for a test email.');
+      els.messageCenterTestSend.disabled = true;
+      els.messageCenterStatus.textContent = 'Sending test email using ' + target.name + '\'s preview...';
+      apiPost({
+        action: 'sendMessageCenterTestEmail',
+        studentId: target.studentId,
+        teacherSignoff: els.messageCenterSignoff.value.trim()
+      }).then(function(response) {
+        els.messageCenterTestSend.disabled = false;
+        if (!response.ok) return showError(response.message || 'Unable to send test email.');
+        els.messageCenterStatus.textContent = 'Test email sent to ' + response.to + ' using ' + response.studentName + '\'s preview.';
+        showToast('Test email sent.');
+      }).catch(function(err) {
+        els.messageCenterTestSend.disabled = false;
+        showError(err.message || String(err));
+      });
+    }
+
+    function getSelectedMessageStudents() {
+      return state.messageCenter.students.filter(function(student) {
+        return state.messageCenter.selectedKeys.has(messageKey(student));
+      });
+    }
+
+    function getMessageStudentByKey(key) {
+      return state.messageCenter.students.find(function(student) {
+        return messageKey(student) === key;
+      });
+    }
+
+    function updateMessageSelectionCount() {
+      var selected = getSelectedMessageStudents();
+      els.messageCenterSelectionCount.textContent = selected.length + ' selected';
+    }
+
+    function showTeacherCommentBox(comment) {
+      var text = String(comment || '').trim();
+      if (!text) return hideTeacherCommentBox();
+      els.mcTeacherCommentText.textContent = text;
+      els.mcTeacherCommentBox.classList.remove('hidden');
+    }
+
+    function hideTeacherCommentBox() {
+      if (!els.mcTeacherCommentBox) return;
+      els.mcTeacherCommentBox.classList.add('hidden');
+      if (els.mcTeacherCommentText) els.mcTeacherCommentText.textContent = '';
+    }
+
+    function renderMessageCenterPrimeNotice(student) {
+      if (!els.mcPrimeNotice) return;
+      if (!student || student.primeEligible !== 'YES') {
+        els.mcPrimeNotice.classList.add('hidden');
+        els.mcPrimeNotice.textContent = '';
+        return;
+      }
+      var total = Number(student.totalScore);
+      var pointsNeeded = Number.isNaN(total) ? '-' : Math.max(0, Math.ceil((getPrimeDisplayThreshold() / 100) * getCurrentTotalMax()) - total);
+      els.mcPrimeNotice.textContent = 'PRIME eligible — needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%.';
+      els.mcPrimeNotice.classList.remove('hidden');
+    }
+
+    function emailSentDateStr(value) {
+      if (!value) return 'previously';
+      var date = new Date(value);
+      if (isNaN(date.getTime())) return 'previously';
+      return date.toLocaleDateString();
+    }
+
     async function savePrimeThresholdSetting() {
       var value = Number(els.primeThresholdInput.value);
       if (isNaN(value) || value < 1 || value > 100) {
@@ -2016,7 +3154,8 @@
       }
     }
 
-    function enterRubricEditorMode() {
+    async function enterRubricEditorMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       state.mode = 'rubricEditor';
       updateModeVisibility();
@@ -2199,7 +3338,8 @@
         : '<span class="total-ok"><i class="ti ti-circle-check"></i> Total: 20 pts</span>');
     }
 
-    function returnToGradingMode() {
+    async function returnToGradingMode() {
+      await flushPendingCommentSaves();
       closeSettingsMenu();
       if (state.mode === 'rubricEditor' && state.rubricDirty) {
         openConfirmModal({
@@ -2236,22 +3376,24 @@
       updateModeVisibility();
     }
 
-    function moveStudent(direction) {
+    async function moveStudent(direction) {
+      await flushPendingCommentSaves();
       var students = visibleStudents();
       var index = students.findIndex(function(student) { return student.studentId === state.selectedStudentId; });
       if (index < 0) return;
       var next = students[index + direction];
-      if (next) selectStudent(next.studentId);
+      if (next) await selectStudent(next.studentId);
     }
 
-    function selectNextUngraded() {
+    async function selectNextUngraded() {
+      await flushPendingCommentSaves();
       var target = visibleStudents().find(function(student) {
         return (student.status === 'Ungraded' || student.status === 'In Progress') && student.hasEssay;
       }) || visibleStudents().find(function(student) {
         return student.status === 'Ungraded' || student.status === 'In Progress';
       });
       if (!target) return showToast('No ungraded students remain in this view.');
-      selectStudent(target.studentId);
+      await selectStudent(target.studentId);
     }
 
     function mergeStudentSummary(student) {
@@ -2274,12 +3416,15 @@
         comment: student.comment,
         vocabFound: student.vocabFound,
         vocabMissing: student.vocabMissing,
+        emailSent: student.emailSent,
+        emailSentAt: student.emailSentAt,
         hasEssay: !!student.essay
       };
     }
 
     async function printPrimeSheet() {
       if (!state.selectedStudent) return;
+      await flushPendingCommentSaves();
       var win = window.open('', '_blank');
       if (!win) return showToast('Pop-up blocked. Allow pop-ups to print.');
       var html = buildPrimeSheetHtml();
@@ -2302,9 +3447,9 @@
       var total = Number(student.totalScore) || computeLocalTotal(student.scores) || 0;
       var percent = student.percent === '' ? round1(total / getCurrentTotalMax() * 100) : student.percent;
       var pointsNeeded = getPointsNeededForPrimeGoal(total);
-      return '<!doctype html><html><head><meta charset="utf-8"><title>PRIME Revision</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;color:#203044}.top{background:#203044;color:#fff;padding:18px 24px}.sheet{padding:28px 34px}h1{margin:0 0 6px;font-size:34px}.box{background:#f8faff;border-left:5px solid #4a40e0;border-radius:8px;padding:14px 16px;margin:18px 0}.rules{background:#fff8e1;border-left-color:#f59e0b}table{border-collapse:collapse;width:100%;margin-top:20px}td,th{border:1px solid #dce9ff;padding:12px;vertical-align:top}th{text-align:left;background:#eaf1ff}@media print{.top{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="top"><strong>Iran Summative PRIME Revision</strong></div><main class="sheet"><h1>' + escapeHtml(student.name) + '</h1><p>Period ' + escapeHtml(student.period) + ' • ' + escapeHtml(state.teacher.name) + '</p><p><strong>Score:</strong> ' + total + '/' + getCurrentTotalMax() + ' (' + percent + '%) • Needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%</p><p><strong>PRIME Trigger:</strong> Students below ' + getPrimeTriggerThreshold() + '% are flagged for PRIME so borderline rounding stays out of the way.</p><table><thead><tr><th>Criterion</th><th>Score</th><th>Comment</th></tr></thead><tbody>' + state.rubric.map(function(criterion) {
-        return '<tr><td>' + escapeHtml(criterion.title) + '</td><td>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</td><td>' + escapeHtml(student.comment || '') + '</td></tr>';
-      }).join('') + '</tbody></table><section class="box"><strong>Focus Areas</strong><p>' + escapeHtml((document.getElementById('primeFocusInput') || {}).value || student.primeFocusAreas || '') + '</p></section><section class="box"><strong>PRIME Comment</strong><p>' + escapeHtml((document.getElementById('primeCommentInput') || {}).value || student.primeComment || '') + '</p></section><section class="box rules"><strong>Rules</strong><p>Complete this revision using your class notes and teacher feedback. Do not use AI.</p></section></main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},600)})<\/script></body></html>';
+      return '<!doctype html><html><head><meta charset="utf-8"><title>PRIME Revision</title><style>@page{size:letter;margin:0.6in 0.75in}*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;color:#203044;background:#fff}.top{background:#203044;color:#fff;padding:16px 20px}.sheet{padding:18px 0 0}h1{margin:0 0 4px;font-size:28px;line-height:1.1}.meta{margin:0 0 14px;font-size:13px;color:#4b5b74}.summary{margin:0 0 16px;font-size:13px;line-height:1.5}.box{background:#f8faff;border:1px solid #dce9ff;border-left:5px solid #4a40e0;border-radius:6px;padding:12px 14px;margin:16px 0;break-inside:avoid}.box strong{display:block;margin-bottom:6px;font-size:13px;letter-spacing:.02em;text-transform:uppercase}.box p{margin:0;font-size:13px;line-height:1.6}.rules{background:#fff8e1;border-color:#f7d794;border-left-color:#f59e0b}.score-table{border-collapse:collapse;width:100%;margin-top:14px;font-size:13px}.score-table th,.score-table td{border:1px solid #cfd8e3;padding:10px 12px;vertical-align:top}.score-table th{text-align:left;background:#eaf1ff;font-size:12px;letter-spacing:.03em;text-transform:uppercase}.score-table td:nth-child(2),.score-table th:nth-child(2){width:88px;text-align:center}.essay-block{margin:18px 0 10px}.essay-block strong,.revision-block strong,.footer{font-size:13px}.essay-text{margin-top:8px;border:1px solid #cfd8e3;padding:12px;font-size:12px;line-height:3.2;white-space:pre-wrap}.revision-block{margin-top:18px;break-inside:avoid}.revision-lines{margin-top:10px}.revision-line{border-bottom:1px solid #bbb;height:30px}.footer{margin-top:22px;padding-top:10px;border-top:1px solid #cfd8e3;text-align:center;color:#55657d}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.top{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="top"><strong>Iran Summative PRIME Revision</strong></div><main class="sheet"><h1>' + escapeHtml(student.name) + '</h1><p class="meta">Period ' + escapeHtml(student.period) + ' | ' + escapeHtml(state.teacher.name) + '</p><p class="summary"><strong>Score:</strong> ' + total + '/' + getCurrentTotalMax() + ' (' + percent + '%) | Needs ' + pointsNeeded + ' pts to reach ' + getPrimeDisplayThreshold() + '%</p><table class="score-table"><thead><tr><th>Criterion</th><th>Score</th><th>Comment</th></tr></thead><tbody>' + state.rubric.map(function(criterion) {
+        return '<tr><td>' + escapeHtml(criterion.title) + '</td><td>' + escapeHtml(String(scoreOrBlank(student.scores[criterion.key]) === '' ? '-' : scoreOrBlank(student.scores[criterion.key]))) + '/' + escapeHtml(String(criterion.max)) + '</td><td>' + escapeHtml((student.criterionComments && student.criterionComments[criterion.key]) || '') + '</td></tr>';
+      }).join('') + '</tbody></table><section class="box rules"><strong>Rules</strong><p>Complete this revision using your class notes and teacher feedback. Do not use AI.</p></section>' + (student.essay ? '<section class="essay-block"><strong>Student Response</strong><div class="essay-text">' + escapeHtml(student.essay) + '</div></section>' : '') + '<section class="box"><strong>Focus Areas</strong><p>' + escapeHtml((document.getElementById('primeFocusInput') || {}).value || student.primeFocusAreas || '') + '</p></section><section class="box"><strong>PRIME Comment</strong><p>' + escapeHtml((document.getElementById('primeCommentInput') || {}).value || student.primeComment || '') + '</p></section><section class="revision-block"><strong>Revision Lines</strong><div class="revision-lines"><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div><div class="revision-line"></div></div></section><footer class="footer">Contemporary World History | ' + escapeHtml(state.teacher.name) + ' | PRIME Revision Document</footer></main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},600)})<\/script></body></html>';
     }
 
     function toggleHighlightMode() {
@@ -2516,6 +3661,7 @@
     function handleKeys(event) {
       if (event.key === 'Escape') {
         if (!els.confirmModal.classList.contains('hidden')) return closeConfirmModal();
+        if (!els.messageCenterModal.classList.contains('hidden')) return closeMessageCenter();
         return closeSettingsMenu();
       }
       if (event.target.matches('textarea, input, select, button')) return;
@@ -2525,7 +3671,8 @@
       if (event.key.toLowerCase() === 'f' && state.selectedStudent) {
         state.selectedStudent.flagged = !state.selectedStudent.flagged;
         renderRubric(state.selectedStudent);
-        scheduleSave();
+        markStudentChanged();
+        scheduleScoreSave('flagged');
       }
     }
 
