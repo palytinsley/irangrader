@@ -25,6 +25,8 @@ Repo conventions:
 - frontend at repo root
 - /gas folder for GAS source
 - .clasp.json gitignored
+- active teacher frontend edits currently happen in `tinsley/index_v2.html`
+- deploy GitHub Pages by copying `tinsley/index_v2.html` to repo-root `index.html`
 
 Workflow:
 - Codex should push GitHub changes
@@ -83,6 +85,13 @@ Standard flow:
 4. Codex pushes to GitHub via SSH
 5. Codex runs clasp push
 6. Verify deployment/repo state
+
+Frontend deploy convention:
+
+1. Make teacher UI edits in `tinsley/index_v2.html`
+2. Copy `tinsley/index_v2.html` to repo-root `index.html`
+3. Copy any root-served companion files such as `scraper.html`
+4. Push to GitHub so Pages serves the repo root version
 
 Before starting:
 - ask whether this is a new repo or existing repo

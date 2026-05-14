@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iran Scraper Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy:#13304e; --paper:#f7fbff; --ink:#203044; --muted:#5b6b80; --line:#d8e2ef; --accent:#1d5bd6; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:linear-gradient(180deg,#eef5ff,#f9fbff); color:var(--ink); font-family:"Open Sans",Arial,sans-serif; }
+    main { max-width:1040px; margin:0 auto; padding:3rem 1.25rem 4rem; }
+    h1,h2 { font-family:"Arvo",Georgia,serif; margin:0; }
+    .hero { margin-bottom:1.4rem; }
+    .hero p { color:var(--muted); max-width:760px; }
+    .grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+    .card { background:#fff; border-radius:24px; box-shadow:0 18px 34px rgba(32,48,68,.08); padding:1.25rem 1.3rem; border:1px solid var(--line); }
+    .eyebrow { color:var(--accent); font-size:.72rem; font-weight:800; letter-spacing:.08em; margin:0 0 .4rem; text-transform:uppercase; }
+    .bookmarklet { display:inline-flex; align-items:center; gap:.5rem; background:var(--navy); color:#fff; border-radius:999px; font-weight:800; padding:.85rem 1.1rem; text-decoration:none; margin:.75rem 0; }
+    .code { background:var(--paper); border:1px solid var(--line); border-radius:16px; max-height:220px; overflow:auto; padding:1rem; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.78rem; word-break:break-all; }
+    .copy-btn, .open-link { display:inline-flex; align-items:center; gap:.45rem; background:#e8f0ff; border:0; border-radius:999px; color:var(--accent); font-weight:800; min-height:42px; padding:.7rem 1rem; text-decoration:none; }
+    table { border-collapse:collapse; width:100%; }
+    td,th { border-top:1px solid var(--line); padding:.7rem 0; text-align:left; }
+    th { font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Schoology Helper</p>
+      <h1>Iran Summative Scraper</h1>
+      <p>Install the bookmarklet once, use it from the Schoology submissions page, then upload the downloaded CSV into your grader setup screen.</p>
+    </section>
+    <section class="grid">
+      <article class="card">
+        <p class="eyebrow">Card 1</p>
+        <h2>Install Bookmarklet</h2>
+        <p>Turn on your bookmarks bar first with <strong>Cmd+Shift+B</strong> on Mac or <strong>Ctrl+Shift+B</strong> on Windows.</p>
+        <a id="bm-btn" class="bookmarklet" href="#">📄 Scrape Iran Submissions</a>
+        <p>Drag that button to your bookmarks bar, or copy the code below and save it as a bookmark manually.</p>
+        <button class="copy-btn" id="copyCodeBtn" type="button">Copy Bookmarklet Code</button>
+        <div class="code" id="bookmarkletCode"></div>
+      </article>
+      <article class="card">
+        <p class="eyebrow">Card 2</p>
+        <h2>Scrape</h2>
+        <p>Go to Schoology, open the Iran Summative submissions page, scroll all the way to the bottom, then click the bookmarklet.</p>
+        <p>The browser downloads <strong>schoology_submissions_iran.csv</strong>. Student names need to match the roster closely for the upload matcher to succeed.</p>
+      </article>
+      <article class="card">
+        <p class="eyebrow">Card 3</p>
+        <h2>Upload to Grader</h2>
+        <p>Open your teacher grader, go through Setup Step 2, and upload the downloaded CSV.</p>
+        <a class="open-link" href="./index_v2.html">Open Tinsley Grader</a>
+        <p>The upload confirmation modal will show matched and unmatched names before anything writes to the shared sheet.</p>
+      </article>
+      <article class="card">
+        <p class="eyebrow">Card 4</p>
+        <h2>Keyboard Shortcuts</h2>
+        <table>
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>→</td><td>Save + Next student flow</td></tr>
+            <tr><td>←</td><td>Previous student</td></tr>
+            <tr><td>F</td><td>Toggle flag</td></tr>
+            <tr><td>H</td><td>Highlight mode button in toolbar</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+  </main>
+  <script>
+    function makeBookmarklet() {
+      return "javascript:(function(){" +
+        "var articles=document.querySelectorAll('article.fjQuT');" +
+        "var editors=document.querySelectorAll('.lrn_texteditor_editable');" +
+        "if(!articles.length||!editors.length){" +
+          "alert('No submissions found. Scroll to bottom and try again.');return;" +
+        "}" +
+        "var count=Math.min(articles.length,editors.length);" +
+        "var rows=[['Name','Essay']];" +
+        "for(var i=0;i<count;i++){" +
+          "var nameEl=articles[i].querySelector('div[class*=\"_32ur3\"]');" +
+          "var name=nameEl?nameEl.textContent.trim():'Unknown '+i;" +
+          "var paras=editors[i].querySelectorAll('p');" +
+          "var lines=[];" +
+          "paras.forEach(function(p){var t=p.textContent.trim().replace(/[\\r\\n]+/g,' ');if(t)lines.push(t);});" +
+          "var essay=lines.join(' | ');" +
+          "rows.push([name,essay]);" +
+        "}" +
+        "var NL=String.fromCharCode(10);" +
+        "var csv=rows.map(function(r){" +
+          "return '\"'+r[0].replace(/\"/g,'\"\"')+'\",\"'+r[1].replace(/\"/g,'\"\"')+'\"';" +
+        "}).join(NL);" +
+        "var blob=new Blob([csv],{type:'text/csv'});" +
+        "var url=URL.createObjectURL(blob);" +
+        "var a=document.createElement('a');" +
+        "a.href=url;a.download='schoology_submissions_iran.csv';" +
+        "document.body.appendChild(a);a.click();" +
+        "document.body.removeChild(a);URL.revokeObjectURL(url);" +
+        "alert('Done! Downloaded '+(rows.length-1)+' submissions.');" +
+      "})();";
+    }
+    var code = makeBookmarklet();
+    document.getElementById('bm-btn').href = code;
+    document.getElementById('bookmarkletCode').textContent = code;
+    document.getElementById('copyCodeBtn').addEventListener('click', function() {
+      navigator.clipboard.writeText(code).then(function() {
+        document.getElementById('copyCodeBtn').textContent = 'Copied';
+        setTimeout(function() { document.getElementById('copyCodeBtn').textContent = 'Copy Bookmarklet Code'; }, 1200);
+      });
+    });
+  </script>
+</body>
+</html>
