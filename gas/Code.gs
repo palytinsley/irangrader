@@ -59,7 +59,8 @@ const CONFIG = {
     'PRIME Comment Text': 'Come to PRIME to revise up to 85%.',
     'PRIME Threshold': '85',
     'Visit Below Percent': '84',
-    'Revise To Percent': '85'
+    'Revise To Percent': '85',
+    'Speed Grade Default': 'true'
   }
 };
 
@@ -406,22 +407,27 @@ function saveGrade_(payload) {
       if (!match) throw new Error('Could not find student ' + payload.studentId + '.');
       var row = match.row;
       var scores = payload.scores || {};
-      setRowValue_(row, ctx.headerMap, 'Claim Score',     scoreOrBlank_(scores.claim));
-      setRowValue_(row, ctx.headerMap, 'Evidence Score',  scoreOrBlank_(scores.evidence));
-      setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
-      setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
+      if (Object.prototype.hasOwnProperty.call(scores, 'claim')) setRowValue_(row, ctx.headerMap, 'Claim Score', scoreOrBlank_(scores.claim));
+      if (Object.prototype.hasOwnProperty.call(scores, 'evidence')) setRowValue_(row, ctx.headerMap, 'Evidence Score', scoreOrBlank_(scores.evidence));
+      if (Object.prototype.hasOwnProperty.call(scores, 'reasoning')) setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
+      if (Object.prototype.hasOwnProperty.call(scores, 'mechanics')) setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
       var criterionComments = payload.criterionComments || {};
       setRowValue_(row, ctx.headerMap, 'Claim Comment',     stringOrBlank_(criterionComments.claim));
       setRowValue_(row, ctx.headerMap, 'Evidence Comment',  stringOrBlank_(criterionComments.evidence));
       setRowValue_(row, ctx.headerMap, 'Reasoning Comment', stringOrBlank_(criterionComments.reasoning));
       setRowValue_(row, ctx.headerMap, 'Mechanics Comment', stringOrBlank_(criterionComments.mechanics));
       setRowValue_(row, ctx.headerMap, 'Comment',         stringOrBlank_(payload.comment));
+      if (Object.prototype.hasOwnProperty.call(payload, 'totalScore')) {
+        setRowValue_(row, ctx.headerMap, 'Total Score', scoreOrBlank_(payload.totalScore));
+      }
       setRowValue_(row, ctx.headerMap, 'Flagged',         truthy_(payload.flagged) ? 'YES' : 'NO');
-      setRowValue_(row, ctx.headerMap, 'Vocab Found',     joinLabels_(payload.vocabFound));
-      setRowValue_(row, ctx.headerMap, 'Vocab Missing',   joinLabels_(payload.vocabMissing));
+      if (!truthy_(payload.speedMode)) {
+        setRowValue_(row, ctx.headerMap, 'Vocab Found', joinLabels_(payload.vocabFound));
+        setRowValue_(row, ctx.headerMap, 'Vocab Missing', joinLabels_(payload.vocabMissing));
+      }
       setRowValue_(row, ctx.headerMap, 'Last Saved At',   new Date());
       setRowValue_(row, ctx.headerMap, 'Last Saved By',   getUserEmail_());
-      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax);
+      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax, { preserveDirectTotal: Object.prototype.hasOwnProperty.call(payload, 'totalScore') });
       writeSheetRow_(ctx.sheet, match.rowNumber, row);
       savedStudent = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
     });
@@ -1026,7 +1032,8 @@ function writeRowsBatch_(sheet, rows, width) {
   });
 }
 
-function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
+function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, options) {
+  options = options || {};
   const claim = scoreOrBlank_(getValue_(row, headerMap, 'Claim Score'));
   const evidence = scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score'));
   const reasoning = scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score'));
@@ -1036,10 +1043,12 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
   const allPresent = scores.every(function(score) { return score !== ''; });
   const currentStatus = stringOrBlank_(getValue_(row, headerMap, 'Status'));
   if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) return row;
-  const total = allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
-  const percent = allPresent && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
+  const directTotal = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
+  const useDirectTotal = options.preserveDirectTotal && directTotal !== '';
+  const total = useDirectTotal ? directTotal : allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
+  const percent = (useDirectTotal || allPresent) && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
   let status = CONFIG.STATUS.UNGRADED;
-  if (allPresent) status = CONFIG.STATUS.COMPLETE;
+  if (useDirectTotal || allPresent) status = CONFIG.STATUS.COMPLETE;
   else if (hasAny) status = CONFIG.STATUS.IN_PROGRESS;
   const primeTriggerThreshold = getPrimeTriggerThresholdFromSettings_(settings);
   const primeEligible = status === CONFIG.STATUS.COMPLETE && Number(percent) < primeTriggerThreshold ? 'YES' : 'NO';

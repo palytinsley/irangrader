@@ -1158,6 +1158,8 @@
       selectedStudent: null,
       periodFilter: 'All',
       primeMode: false,
+      speedMode: false,
+      speedModeManuallyToggled: false,
       dirty: false,
       changeVersion: 0,
       pendingSave: false,
@@ -1283,6 +1285,7 @@
           <button class="secondary-btn" id="nextStudentBtn">Next <i class="ti ti-arrow-right"></i></button>
           <button class="primary-btn" id="nextUngradedBtn"><i class="ti ti-player-skip-forward"></i> Next Ungraded</button>
           <div class="settings-menu-wrap">
+            <button class="secondary-btn" id="speedModeBtn" type="button" title="Speed Grade mode" aria-label="Speed Grade mode"><i class="ti ti-bolt"></i></button>
             <button class="icon-btn" id="settingsBtn" aria-expanded="false"><i class="ti ti-settings"></i></button>
             <div class="settings-menu hidden" id="settingsMenu" role="menu">
               <div class="settings-menu-group">
@@ -1626,7 +1629,7 @@
     function cacheElements() {
       [
         'teacherTitle', 'periodFilters', 'summaryProgressRing', 'summaryPercent', 'summaryCount', 'primeSummary', 'studentJump', 'studentList',
-        'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn',
+        'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn', 'speedModeBtn',
         'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn', 'messageCenterBtn',
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
@@ -1654,6 +1657,12 @@
       els.nextStudentBtn.addEventListener('click', function() { moveStudent(1); });
       els.nextUngradedBtn.addEventListener('click', selectNextUngraded);
       els.settingsBtn.addEventListener('click', toggleSettingsMenu);
+      els.speedModeBtn.addEventListener('click', function() {
+        state.speedMode = !state.speedMode;
+        state.speedModeManuallyToggled = true;
+        syncSpeedModeBtn();
+        if (state.selectedStudent) renderStudentDetails();
+      });
       els.analyticsBtn.addEventListener('click', enterAnalyticsMode);
       els.messageCenterBtn.addEventListener('click', openMessageCenter);
       els.schoologyBtn.addEventListener('click', enterSchoologyMode);
@@ -1852,6 +1861,7 @@
         state.students = response.students || [];
         state.summary = response.summary || {};
         state.settings = response.settings || state.settings || {};
+        applySpeedModeDefault();
         state.rubric = response.rubric || JSON.parse(JSON.stringify(DEFAULT_RUBRIC));
         els.settingsOpenSheetLink.href = response.spreadsheetUrl || 'https://docs.google.com/spreadsheets/d/1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc/edit';
         syncPrimeThresholdUi();
@@ -1898,6 +1908,7 @@
         state.selectedStudent = response.student;
         resetCommentDraftState(state.selectedStudent);
         state.settings = response.settings || state.settings || {};
+        applySpeedModeDefault();
         if (response.rubric) state.rubric = response.rubric;
         syncPrimeThresholdUi();
         state.dirty = false;
@@ -1914,6 +1925,19 @@
         var primeMatch = !state.primeMode || student.primeEligible === 'YES';
         return periodMatch && primeMatch;
       });
+    }
+
+    function applySpeedModeDefault() {
+      if (state.settings && String(state.settings['Speed Grade Default']) === 'true' && !state.speedModeManuallyToggled) {
+        state.speedMode = true;
+      }
+      syncSpeedModeBtn();
+    }
+
+    function syncSpeedModeBtn() {
+      if (!els.speedModeBtn) return;
+      els.speedModeBtn.classList.toggle('active', !!state.speedMode);
+      els.speedModeBtn.setAttribute('aria-pressed', String(!!state.speedMode));
     }
 
     function renderSummary() {
@@ -1972,6 +1996,7 @@
       els.studentMeta.textContent = formatStudentMeta(student);
       els.printPrimeTopBtn.classList.toggle('hidden', !state.primeMode || student.primeEligible !== 'YES');
       els.citationWarning.classList.toggle('hidden', wc >= 80 || !student.essay);
+      syncSpeedModeBtn();
       renderEssay(student);
       renderRubric(student);
       markActiveStudent();
@@ -2047,6 +2072,13 @@
     function renderRubric(student) {
       els.rubricEyebrow.textContent = getCurrentTotalMax() + ' Point Rubric';
       els.rubricList.innerHTML = '';
+      if (state.speedMode) {
+        els.rubricEyebrow.textContent = getCurrentTotalMax() + ' Point Speed Grade';
+        els.rubricList.insertAdjacentHTML('beforeend', renderSpeedGradeCard(student));
+        els.rubricList.insertAdjacentHTML('beforeend', renderPrimePanel(student));
+        bindRubricEvents();
+        return;
+      }
       state.rubric.forEach(function(criterion, index) {
         var score = scoreOrBlank(student.scores[criterion.key]);
         var selectedBand = (criterion.bands || []).find(function(band) { return Number(band.score) === Number(score); });
@@ -2100,6 +2132,31 @@
       els.rubricList.insertAdjacentHTML('beforeend', renderSummaryCard(student));
       els.rubricList.insertAdjacentHTML('beforeend', renderPrimePanel(student));
       bindRubricEvents();
+    }
+
+    function renderSpeedGradeCard(student) {
+      var totalMax = getCurrentTotalMax();
+      var total = student.totalScore === '' ? '' : student.totalScore;
+      return '' +
+        '<article class="summary-card" id="speedGradeCard">' +
+          '<div class="eyebrow">Speed Grade</div>' +
+          '<label class="score-field">' +
+            '<span>Points (out of ' + escapeHtml(String(totalMax)) + ')</span>' +
+            '<input class="mini-input" type="number" id="speedGradePointsInput" min="0" max="' + escapeAttr(totalMax) + '" step="1" value="' + escapeAttr(total) + '">' +
+          '</label>' +
+          '<label class="score-field" style="margin-top:0.75rem;">' +
+            '<span>Comment</span>' +
+            '<textarea class="field-textarea" id="speedGradeCommentInput" rows="4" placeholder="Feedback...">' + escapeHtml(getDraftOverallCommentValue(student)) + '</textarea>' +
+            '<div class="comment-save-row">' +
+              '<button type="button" class="secondary-btn' + (state.commentSaveFeedback.overall ? ' is-saved' : '') + '" id="saveSpeedGradeBtn">' + (state.commentSaveFeedback.overall ? 'Saved' : 'Save') + '</button>' +
+              '<span class="comment-save-status' + (state.unsavedComments.overall ? ' unsaved' : state.commentSaveFeedback.overall ? ' saved' : '') + '" id="overallCommentSaveStatus">' + (state.unsavedComments.overall ? 'Unsaved comment' : state.commentSaveFeedback.overall ? 'Saved' : '') + '</span>' +
+            '</div>' +
+          '</label>' +
+          '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;margin-top:0.9rem;">' +
+            '<button class="primary-btn" id="saveNextBtn"><i class="ti ti-arrow-right"></i> Save & Next</button>' +
+            '<button class="secondary-btn" id="exportCsvBtn"><i class="ti ti-download"></i> Export CSV</button>' +
+          '</div>' +
+        '</article>';
     }
 
     function renderSummaryCard(student) {
@@ -2284,10 +2341,37 @@
           updateCommentSaveUi({ overall: true });
         });
       }
+      var speedGradePointsInput = document.getElementById('speedGradePointsInput');
+      if (speedGradePointsInput) {
+        speedGradePointsInput.addEventListener('change', function() {
+          state.selectedStudent.totalScore = speedGradePointsInput.value === '' ? '' : Number(speedGradePointsInput.value);
+          markStudentChanged();
+          scheduleScoreSave('speedGrade');
+        });
+      }
+      var speedGradeCommentInput = document.getElementById('speedGradeCommentInput');
+      if (speedGradeCommentInput) {
+        speedGradeCommentInput.addEventListener('input', function() {
+          state.selectedStudent.comment = speedGradeCommentInput.value;
+          state.commentDrafts.overall = speedGradeCommentInput.value;
+          state.unsavedComments.overall = true;
+          clearCommentSavedFeedback({ overall: true });
+          markCommentChanged();
+          updateCommentSaveUi({ overall: true });
+        });
+      }
       var saveOverallCommentBtn = document.getElementById('saveOverallCommentBtn');
       if (saveOverallCommentBtn) {
         saveOverallCommentBtn.addEventListener('click', function() {
           syncLiveStudentDraftFromDom();
+          saveCurrentStudent({ source: 'manual-comment', render: false, commentTarget: { type: 'overall' } });
+        });
+      }
+      var saveSpeedGradeBtn = document.getElementById('saveSpeedGradeBtn');
+      if (saveSpeedGradeBtn) {
+        saveSpeedGradeBtn.addEventListener('click', function() {
+          syncLiveStudentDraftFromDom();
+          markStudentChanged();
           saveCurrentStudent({ source: 'manual-comment', render: false, commentTarget: { type: 'overall' } });
         });
       }
@@ -2385,7 +2469,7 @@
     }
 
     function isCommentField(element) {
-      return !!(element && element.tagName === 'TEXTAREA' && (element.id === 'overallCommentInput' || element.hasAttribute('data-criterion-comment')));
+      return !!(element && element.tagName === 'TEXTAREA' && (element.id === 'overallCommentInput' || element.id === 'speedGradeCommentInput' || element.hasAttribute('data-criterion-comment')));
     }
 
     function syncLiveStudentDraftFromDom() {
@@ -2394,6 +2478,15 @@
       if (overallCommentInput) {
         state.selectedStudent.comment = overallCommentInput.value;
         state.commentDrafts.overall = overallCommentInput.value;
+      }
+      var speedGradeCommentInput = document.getElementById('speedGradeCommentInput');
+      if (speedGradeCommentInput) {
+        state.selectedStudent.comment = speedGradeCommentInput.value;
+        state.commentDrafts.overall = speedGradeCommentInput.value;
+      }
+      var speedGradePointsInput = document.getElementById('speedGradePointsInput');
+      if (speedGradePointsInput) {
+        state.selectedStudent.totalScore = speedGradePointsInput.value === '' ? '' : Number(speedGradePointsInput.value);
       }
       if (!state.selectedStudent.criterionComments) state.selectedStudent.criterionComments = {};
       Array.prototype.slice.call(document.querySelectorAll('[data-criterion-comment]')).forEach(function(textarea) {
@@ -2406,6 +2499,20 @@
     function studentPayload(options) {
       syncLiveStudentDraftFromDom();
       options = options || {};
+      if (state.speedMode) {
+        return {
+          action: 'saveGrade',
+          speedMode: true,
+          studentId: state.selectedStudent.studentId,
+          totalScore: state.selectedStudent.totalScore === '' ? '' : Number(state.selectedStudent.totalScore),
+          scores: {},
+          criterionComments: cloneCriterionComments(state.savedCommentSnapshot.criteria),
+          comment: state.selectedStudent.comment || '',
+          flagged: !!state.selectedStudent.flagged,
+          vocabFound: [],
+          vocabMissing: []
+        };
+      }
       var commentPayload = buildCommentPayload(options);
       return {
         action: 'saveGrade',
@@ -2847,13 +2954,13 @@
       target = target || {};
       if (target.overall) {
         var overallStatus = document.getElementById('overallCommentSaveStatus');
-        var overallButton = document.getElementById('saveOverallCommentBtn');
+        var overallButton = document.getElementById('saveOverallCommentBtn') || document.getElementById('saveSpeedGradeBtn');
         if (overallStatus) {
           overallStatus.textContent = state.unsavedComments.overall ? 'Unsaved comment' : state.commentSaveFeedback.overall ? 'Saved' : '';
           overallStatus.className = 'comment-save-status' + (state.unsavedComments.overall ? ' unsaved' : state.commentSaveFeedback.overall ? ' saved' : '');
         }
         if (overallButton) {
-          overallButton.textContent = state.commentSaveFeedback.overall ? 'Saved' : 'Save Overall Comment';
+          overallButton.textContent = state.commentSaveFeedback.overall ? 'Saved' : (overallButton.id === 'saveSpeedGradeBtn' ? 'Save' : 'Save Overall Comment');
           overallButton.classList.toggle('is-saved', !!state.commentSaveFeedback.overall);
         }
         return;
@@ -3894,7 +4001,7 @@
     function buildSchoologyComment(student) {
       if (student.status === 'No Submission') return 'No submission received.';
       var pieces = [];
-      var rubricSnapshot = buildSchoologyRubricSnapshot(student);
+      var rubricSnapshot = state.speedMode ? '' : buildSchoologyRubricSnapshot(student);
       if (student.comment) pieces.push(student.comment);
       if (!student.comment && rubricSnapshot) pieces.push(rubricSnapshot);
       if (Array.isArray(student.vocabMissing) && student.vocabMissing.length) {
