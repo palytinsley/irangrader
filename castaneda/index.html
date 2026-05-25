@@ -463,7 +463,7 @@
       min-height: 0;
       overflow: hidden;
     }
-    .essay-pane { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
+    .essay-pane { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); }
     .rubric-pane { display: grid; grid-template-rows: auto minmax(0, 1fr); }
     .section-heading {
       align-items: flex-start;
@@ -503,6 +503,31 @@
     .wb-pill.found { background: rgba(0,105,71,0.14); color: var(--tertiary); }
     .wb-pill.missing { background: rgba(180,19,64,0.08); color: var(--error); box-shadow: inset 0 0 0 1px rgba(180,19,64,0.18); }
     .essay-toolbar { gap: 0.45rem; justify-content: flex-start; align-items: center; }
+    .essay-questions-btn[aria-expanded="true"] {
+      background: rgba(74,64,224,0.12);
+      color: var(--primary);
+    }
+    .essay-questions-panel {
+      background: var(--surface-container-lowest);
+      border-top: 1px solid var(--hairline);
+      padding: 0.75rem 1.25rem 0.95rem;
+    }
+    .essay-questions-list {
+      background: var(--surface-container-low);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      color: var(--on-surface);
+      display: grid;
+      gap: 0.55rem;
+      margin: 0;
+      padding: 0.75rem 1rem 0.75rem 2.2rem;
+    }
+    .essay-questions-list li {
+      font-size: 0.86rem;
+      font-weight: 650;
+      line-height: 1.4;
+      padding-left: 0.15rem;
+    }
     .tool-btn {
       align-items: center;
       background: var(--surface-container-low);
@@ -571,6 +596,10 @@
     .score-points.full-points { background: rgba(0,105,71,0.12); color: var(--tertiary); }
     .score-points.partial-points { background: rgba(74,64,224,0.12); color: var(--primary); }
     .score-points.zero-points { background: rgba(180,19,64,0.12); color: var(--error); }
+    @media (max-width: 700px) {
+      .essay-questions-panel { padding-inline: 0.85rem; }
+      .essay-questions-list { padding-left: 1.85rem; }
+    }
     @media (max-width: 700px) {
       .rubric-card-head { align-items: stretch; flex-direction: column; }
       .rubric-head-actions { justify-content: flex-start; }
@@ -1352,6 +1381,15 @@
             <div class="toolbar-divider"></div>
             <button class="tool-btn" type="button" id="highlightToggleBtn" title="Highlight"><i class="ti ti-highlighter"></i> Highlight</button>
             <button class="tool-btn" type="button" id="clearHighlightsBtn" title="Clear highlights"><i class="ti ti-eraser"></i> Clear</button>
+            <div class="toolbar-divider"></div>
+            <button class="tool-btn essay-questions-btn" type="button" id="essayQuestionsBtn" aria-expanded="false" aria-controls="essayQuestionsPanel"><i class="ti ti-list-check"></i> Essay Questions</button>
+          </div>
+          <div class="essay-questions-panel hidden" id="essayQuestionsPanel">
+            <ol class="essay-questions-list">
+              <li>How and why does regime change occur? Use two examples from Iran's history: one from before 1960 and one from after.</li>
+              <li>The 1979 revolution was supported by groups with completely different visions for Iran's future. How were such different groups able to unite, and why did a theocracy emerge rather than a democracy?</li>
+              <li>What is the role of natural resources in Iran's political history?</li>
+            </ol>
           </div>
           <p class="citation-warning hidden" id="citationWarning">This submission is very short. Double-check whether the student actually answered all parts of the prompt.</p>
           <div class="essay-display" id="essayContent" contenteditable="true" spellcheck="true"></div>
@@ -1702,7 +1740,7 @@
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
         'boldBtn', 'italicBtn', 'underlineBtn', 'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
-        'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
+        'essayQuestionsBtn', 'essayQuestionsPanel', 'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
         'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
         'toast', 'confirmModal', 'confirmEyebrow', 'confirmTitle', 'confirmBody', 'confirmClose', 'confirmCancel', 'confirmOk',
@@ -1751,6 +1789,7 @@
       els.lineSpacingSelect.addEventListener('change', function() { document.documentElement.style.setProperty('--essay-line-height', els.lineSpacingSelect.value); });
       els.highlightToggleBtn.addEventListener('click', toggleHighlightMode);
       els.clearHighlightsBtn.addEventListener('click', clearManualHighlights);
+      els.essayQuestionsBtn.addEventListener('click', toggleEssayQuestionsPanel);
       els.printPrimeTopBtn.addEventListener('click', printPrimeSheet);
       els.rosterFileInput.addEventListener('change', handleRosterFile);
       els.essayFileInput.addEventListener('change', handleEssayFile);
@@ -1809,6 +1848,11 @@
         document.execCommand('insertText', false, text);
       });
       els.essayContent.addEventListener('mouseup', applyManualHighlightIfNeeded);
+    }
+
+    function toggleEssayQuestionsPanel() {
+      var isHidden = els.essayQuestionsPanel.classList.toggle('hidden');
+      els.essayQuestionsBtn.setAttribute('aria-expanded', String(!isHidden));
     }
 
     function renderTeacherFrame() {
