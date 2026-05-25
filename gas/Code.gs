@@ -370,6 +370,7 @@ function uploadEssays_(payload) {
       const now = new Date();
       let matched = 0;
       const unmatched = [];
+      const skipped = [];
       const lookup = buildNameLookup_(table.rows, table.headerMap);
       essays.forEach(function(entry) {
         const essayName = stringOrBlank_(entry.name);
@@ -380,13 +381,18 @@ function uploadEssays_(payload) {
           logAction_('unmatchedEssay', JSON.stringify({ name: essayName }));
           return;
         }
+        if (!essayText) {
+          skipped.push({ name: essayName, reason: 'Blank essay text' });
+          logAction_('skippedEssay', JSON.stringify({ name: essayName, reason: 'Blank essay text' }));
+          return;
+        }
         setRowValue_(match.row, table.headerMap, 'Essay', essayText);
         setRowValue_(match.row, table.headerMap, 'Essay Loaded At', now);
         matched += 1;
       });
       writeRowsBatch_(sheet, table.rows, table.headers.length);
-      logAction_('uploadEssays', JSON.stringify({ matched: matched, unmatched: unmatched.length }));
-      return { ok: true, matched: matched, unmatched: unmatched };
+      logAction_('uploadEssays', JSON.stringify({ matched: matched, unmatched: unmatched.length, skipped: skipped.length }));
+      return { ok: true, matched: matched, unmatched: unmatched, skipped: skipped };
     });
   } catch (err) {
     logError_('uploadEssays_', err);

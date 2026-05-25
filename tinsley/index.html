@@ -1210,6 +1210,12 @@
         rosterError: '',
         essayError: ''
       },
+      lateImport: {
+        scraperOpened: false,
+        essaysParsed: false,
+        essayError: '',
+        matchPreview: { matched: [], unmatched: [], skipped: [] }
+      },
       messageCenter: {
         students: [],
         selectedKeys: new Set(),
@@ -1301,6 +1307,7 @@
                 <button type="button" id="analyticsBtn" role="menuitem"><i class="ti ti-chart-bar"></i> Analytics</button>
                 <button type="button" id="messageCenterBtn" role="menuitem"><i class="ti ti-mail-cog"></i> Message Center</button>
                 <button type="button" id="schoologyBtn" role="menuitem"><i class="ti ti-copy"></i> Schoology Mode</button>
+                <button type="button" id="lateImportBtn" role="menuitem"><i class="ti ti-upload"></i> Import Late / Makeup Submissions</button>
                 <button type="button" id="rubricEditorBtn" role="menuitem"><i class="ti ti-table-options"></i> Edit Rubric</button>
                 <a id="settingsOpenSheetLink" href="#" target="_blank" rel="noopener" role="menuitem"><i class="ti ti-table-share"></i> Open in Sheets</a>
               </div>
@@ -1560,7 +1567,7 @@
               <span class="setup-step-status pending" id="setupStep3Status">Waiting</span>
             </div>
             <p class="section-note">Open the Schoology scraper helper in a new tab, install the bookmarklet once, and use it from the submissions page.</p>
-            <a class="primary-btn setup-link-btn" id="openScraperLink" href="./scraper_v1.html" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Open Scraper Tool</a>
+            <a class="primary-btn setup-link-btn" id="openScraperLink" href="./scraper.html" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Open Scraper Tool</a>
             <div class="setup-preview" id="scraperPreview">This step unlocks the CSV upload area.</div>
           </section>
           <section class="setup-step" id="setupStep4">
@@ -1606,6 +1613,70 @@
     </div>
   </div>
 
+  <div class="setup-overlay hidden" id="lateImportOverlay" role="dialog" aria-modal="true" aria-labelledby="lateImportTitle">
+    <div class="setup-card">
+      <div class="setup-header">
+        <div>
+          <p class="eyebrow">Late / Makeup Work</p>
+          <h3 id="lateImportTitle" style="margin:0;font-family:'Arvo',Georgia,serif;">Import Late / Makeup Submissions</h3>
+          <p class="section-note">Late/makeup imports are safe to run after grading has started. Matched students will only have their essay text updated. Scores, comments, PRIME flags, email status, and grading progress will stay untouched.</p>
+        </div>
+        <button class="icon-btn" id="lateImportClose" aria-label="Close late import"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="setup-body">
+        <div class="setup-helper-note">Use this only after the original setup. Re-run the scraper after late students submit, upload the fresh CSV, review matched and unmatched names, then confirm the import.</div>
+        <div class="setup-grid">
+          <section class="setup-step" id="lateStep1">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 1</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Open the scraper page</h3>
+              </div>
+              <span class="setup-step-status active" id="lateStep1Status">Open tool</span>
+            </div>
+            <p class="section-note">Open the active helper, then run the bookmarklet again from the Schoology submissions page after late students have submitted.</p>
+            <a class="primary-btn setup-link-btn" id="lateOpenScraperLink" href="./scraper.html" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Open Scraper Tool</a>
+          </section>
+          <section class="setup-step" id="lateStep2">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 2</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Upload fresh CSV</h3>
+              </div>
+              <span class="setup-step-status pending" id="lateStep2Status">Choose file</span>
+            </div>
+            <p class="section-note">Use the newly downloaded Schoology scraper CSV. Blank essay rows will be skipped and cannot clear existing essays.</p>
+            <input type="file" id="lateEssayFileInput" accept=".csv">
+            <div class="setup-preview" id="lateEssayPreview">No late/makeup CSV loaded yet.</div>
+          </section>
+          <section class="setup-step" id="lateStep3">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 3</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Preview matches</h3>
+              </div>
+              <span class="setup-step-status pending" id="lateStep3Status">Waiting</span>
+            </div>
+            <p class="section-note">Matched names can be imported even if some names are unmatched. Unmatched names are never imported.</p>
+            <div class="setup-preview" id="lateMatchPreview">Upload a CSV to preview matches.</div>
+          </section>
+          <section class="setup-step" id="lateStep4">
+            <div class="setup-step-head">
+              <div>
+                <p class="eyebrow">Step 4</p>
+                <h3 style="margin:0.2rem 0 0;font-size:1.2rem;">Confirm import</h3>
+              </div>
+              <span class="setup-step-status pending" id="lateStep4Status">Waiting</span>
+            </div>
+            <p class="section-note">Only Essay and Essay Loaded At will update for matched rows with essay text.</p>
+            <button class="primary-btn" id="confirmLateImportBtn" type="button"><i class="ti ti-upload"></i> Import Matched Submissions</button>
+            <div class="setup-preview" id="lateImportStatus">Import not started yet.</div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', init);
 
@@ -1630,7 +1701,7 @@
       [
         'teacherTitle', 'periodFilters', 'summaryProgressRing', 'summaryPercent', 'summaryCount', 'primeSummary', 'studentJump', 'studentList',
         'periodLabel', 'studentTitle', 'studentMeta', 'saveState', 'printPrimeTopBtn', 'primeModeBtn', 'speedModeBtn',
-        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn', 'messageCenterBtn',
+        'prevStudentBtn', 'nextStudentBtn', 'nextUngradedBtn', 'settingsBtn', 'settingsMenu', 'analyticsBtn', 'schoologyBtn', 'rubricEditorBtn', 'messageCenterBtn', 'lateImportBtn',
         'readerDefaultBtn', 'readerBeigeBtn', 'readerDarkBtn', 'returnGradingBtn', 'sidebarToggle', 'topbarMiniProgress',
         'miniProgressRing', 'miniProgressLabel', 'miniProgressCount', 'settingsOpenSheetLink', 'primeThresholdInput', 'savePrimeThresholdBtn', 'primeThresholdNote',
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
@@ -1648,6 +1719,8 @@
         'setupStep1', 'setupStep2', 'setupStep3', 'setupStep4', 'setupStep5', 'setupStep6',
         'setupStep1Status', 'setupStep2Status', 'setupStep3Status', 'setupStep4Status', 'setupStep5Status', 'setupStep6Status',
         'rosterUploadStatus', 'scraperPreview', 'essayUploadStatus', 'startPreview', 'openScraperLink'
+        , 'lateImportOverlay', 'lateImportClose', 'lateOpenScraperLink', 'lateEssayFileInput', 'lateEssayPreview', 'lateMatchPreview', 'confirmLateImportBtn', 'lateImportStatus',
+        'lateStep1', 'lateStep2', 'lateStep3', 'lateStep4', 'lateStep1Status', 'lateStep2Status', 'lateStep3Status', 'lateStep4Status'
       ].forEach(function(id) { els[id] = document.getElementById(id); });
     }
 
@@ -1667,6 +1740,7 @@
       els.messageCenterBtn.addEventListener('click', openMessageCenter);
       els.schoologyBtn.addEventListener('click', enterSchoologyMode);
       els.rubricEditorBtn.addEventListener('click', enterRubricEditorMode);
+      els.lateImportBtn.addEventListener('click', openLateImportWorkflow);
       els.returnGradingBtn.addEventListener('click', returnToGradingMode);
       els.primeModeBtn.addEventListener('click', togglePrimeMode);
       els.sidebarToggle.addEventListener('click', toggleSidebar);
@@ -1694,6 +1768,10 @@
       els.uploadEssayBtn.addEventListener('click', confirmEssayUpload);
       els.startGradingBtn.addEventListener('click', finishSetupWizard);
       els.openScraperLink.addEventListener('click', handleScraperLink);
+      els.lateImportClose.addEventListener('click', closeLateImportWorkflow);
+      els.lateOpenScraperLink.addEventListener('click', handleLateScraperLink);
+      els.lateEssayFileInput.addEventListener('change', handleLateEssayFile);
+      els.confirmLateImportBtn.addEventListener('click', confirmLateEssayUpload);
       els.copySchoologyRowsBtn.addEventListener('click', function() { copySchoologyBundle('rows'); });
       els.copySchoologyCommentsBtn.addEventListener('click', function() { copySchoologyBundle('comments'); });
       els.savePrimeThresholdBtn.addEventListener('click', savePrimeThresholdSetting);
@@ -3704,7 +3782,7 @@
         if (!response.ok) return showError(response.message || 'Unable to upload essays.');
         state.setupWizard.essaysUploaded = !!response.matched;
         state.setupWizard.essayError = response.matched ? '' : 'No submissions matched the roster.';
-        els.essayUploadStatus.textContent = response.matched + ' submissions matched. ' + (response.unmatched || []).length + ' unmatched.';
+        els.essayUploadStatus.textContent = response.matched + ' submissions matched. ' + (response.unmatched || []).length + ' unmatched. ' + (response.skipped || []).length + ' skipped.';
         showToast('Essays uploaded: ' + response.matched + ' matched.');
         loadAppData();
       } catch (err) {
@@ -3714,6 +3792,112 @@
         renderSetupWizard();
         showError(err.message || String(err));
       }
+    }
+
+    function openLateImportWorkflow() {
+      closeSettingsMenu();
+      state.lateImport.scraperOpened = false;
+      state.lateImport.essaysParsed = false;
+      state.lateImport.essayError = '';
+      state.lateImport.matchPreview = { matched: [], unmatched: [], skipped: [] };
+      state.essayRows = [];
+      if (els.lateEssayFileInput) els.lateEssayFileInput.value = '';
+      els.lateEssayPreview.textContent = 'No late/makeup CSV loaded yet.';
+      els.lateMatchPreview.textContent = 'Upload a CSV to preview matches.';
+      els.lateImportStatus.textContent = 'Import not started yet.';
+      els.lateImportOverlay.classList.remove('hidden');
+      renderLateImportWorkflow();
+    }
+
+    function closeLateImportWorkflow() {
+      els.lateImportOverlay.classList.add('hidden');
+      els.lateImportOverlay.style.zIndex = '';
+    }
+
+    function handleLateScraperLink() {
+      state.lateImport.scraperOpened = true;
+      renderLateImportWorkflow();
+    }
+
+    function handleLateEssayFile(event) {
+      var file = event.target.files && event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(loadEvent) {
+        try {
+          var parsed = parseCSVFull(loadEvent.target.result);
+          state.essayRows = parsed.slice(1).map(function(row) {
+            return { name: row[0] || '', essay: row[1] || '' };
+          }).filter(function(entry) { return entry.name; });
+          state.lateImport.essaysParsed = !!state.essayRows.length;
+          state.lateImport.essayError = state.essayRows.length ? '' : 'No submission rows were found in that CSV.';
+          state.lateImport.matchPreview = previewEssayMatches(state.essayRows, state.students);
+          els.lateEssayPreview.textContent = state.essayRows.length + ' submissions found.\n\n' + state.essayRows.slice(0, 12).map(function(entry) { return entry.name; }).join('\n');
+          renderLateImportWorkflow();
+        } catch (err) {
+          state.lateImport.essaysParsed = false;
+          state.lateImport.essayError = 'Unable to parse submissions CSV.';
+          state.lateImport.matchPreview = { matched: [], unmatched: [], skipped: [] };
+          renderLateImportWorkflow();
+          showError('Unable to parse submissions CSV.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function confirmLateEssayUpload() {
+      if (!state.essayRows.length) return showToast('Choose a late/makeup submissions CSV first.');
+      var preview = state.lateImport.matchPreview || previewEssayMatches(state.essayRows, state.students);
+      if (!preview.matched.length) return showToast('No matched submissions with essay text are ready to import.');
+      openConfirmModal({
+        eyebrow: 'Late / makeup import',
+        title: 'Import matched late submissions?',
+        body: '<p class="subtle">This will update only Essay and Essay Loaded At for ' + preview.matched.length + ' matched students. Scores, comments, PRIME flags, email status, and grading progress will stay untouched.</p>' + buildEssayMatchPreviewHtml(preview),
+        okText: 'Import matched submissions',
+        action: uploadLateEssaysNow
+      });
+    }
+
+    async function uploadLateEssaysNow() {
+      try {
+        var response = await apiPost({ action: 'uploadEssays', essays: state.essayRows });
+        if (!response.ok) return showError(response.message || 'Unable to import late submissions.');
+        els.lateImportStatus.textContent = response.matched + ' submissions imported. ' + (response.unmatched || []).length + ' unmatched. ' + (response.skipped || []).length + ' skipped.';
+        state.lateImport.matchPreview = previewEssayMatches(state.essayRows, state.students);
+        renderLateImportWorkflow();
+        showToast('Late submissions imported: ' + response.matched + ' matched.');
+        await loadAppData();
+      } catch (err) {
+        state.lateImport.essayError = err.message || String(err);
+        els.lateImportStatus.textContent = 'Late import failed. Review the match preview and try again.';
+        renderLateImportWorkflow();
+        showError(err.message || String(err));
+      }
+    }
+
+    function renderLateImportWorkflow() {
+      var late = state.lateImport;
+      var preview = late.matchPreview || { matched: [], unmatched: [], skipped: [] };
+      updateSetupStep('lateStep1', 'lateStep1Status', late.scraperOpened ? 'done' : 'active', late.scraperOpened ? 'Opened' : 'Open tool');
+      updateSetupStep('lateStep2', 'lateStep2Status', late.essayError ? 'error' : late.essaysParsed ? 'done' : 'active', late.essayError || (late.essaysParsed ? 'Ready' : 'Choose file'));
+      updateSetupStep('lateStep3', 'lateStep3Status', late.essayError ? 'error' : late.essaysParsed ? 'done' : 'pending', late.essayError || (late.essaysParsed ? 'Reviewed' : 'Waiting'));
+      updateSetupStep('lateStep4', 'lateStep4Status', preview.matched.length ? 'active' : 'pending', preview.matched.length ? 'Ready' : 'Waiting');
+      els.confirmLateImportBtn.disabled = !preview.matched.length;
+      if (!late.essaysParsed) return;
+      els.lateMatchPreview.innerHTML = buildEssayMatchPreviewContent(preview);
+    }
+
+    function buildEssayMatchPreviewHtml(preview) {
+      return '<div class="setup-preview">' + buildEssayMatchPreviewContent(preview) + '</div>';
+    }
+
+    function buildEssayMatchPreviewContent(preview) {
+      return '<strong>Matched - will import</strong><br>' +
+        (preview.matched.length ? preview.matched.map(escapeHtml).join('<br>') : 'None') +
+        '<br><br><strong>Unmatched - will not import</strong><br>' +
+        (preview.unmatched.length ? preview.unmatched.map(escapeHtml).join('<br>') : 'None') +
+        '<br><br><strong>Skipped - blank essay text</strong><br>' +
+        (preview.skipped.length ? preview.skipped.map(escapeHtml).join('<br>') : 'None');
     }
 
     function previewEssayMatches(essays, students) {
@@ -3726,11 +3910,14 @@
       });
       var matched = [];
       var unmatched = [];
+      var skipped = [];
       essays.forEach(function(entry) {
-        if (normalized[normalizeForMatch(entry.name)] || normalized[normalizeForMatch(sortName(entry.name))]) matched.push(entry.name);
+        var nameMatches = normalized[normalizeForMatch(entry.name)] || normalized[normalizeForMatch(sortName(entry.name))];
+        if (nameMatches && String(entry.essay || '').trim()) matched.push(entry.name);
+        else if (nameMatches) skipped.push(entry.name);
         else unmatched.push(entry.name);
       });
-      return { matched: matched, unmatched: unmatched };
+      return { matched: matched, unmatched: unmatched, skipped: skipped };
     }
 
     function exportCsv() {
@@ -3769,6 +3956,7 @@
     function handleKeys(event) {
       if (event.key === 'Escape') {
         if (!els.confirmModal.classList.contains('hidden')) return closeConfirmModal();
+        if (!els.lateImportOverlay.classList.contains('hidden')) return closeLateImportWorkflow();
         if (!els.messageCenterModal.classList.contains('hidden')) return closeMessageCenter();
         return closeSettingsMenu();
       }
@@ -3802,6 +3990,7 @@
       els.confirmOk.textContent = options.okText || 'Continue';
       els.confirmModal.style.zIndex = '200';
       if (state.setupWizard.active) els.setupOverlay.style.zIndex = '100';
+      if (!els.lateImportOverlay.classList.contains('hidden')) els.lateImportOverlay.style.zIndex = '100';
       els.confirmModal.classList.remove('hidden');
       els.confirmOk.focus();
     }
@@ -3809,6 +3998,7 @@
     function closeConfirmModal() {
       els.confirmModal.classList.add('hidden');
       els.confirmModal.style.zIndex = '';
+      if (els.lateImportOverlay) els.lateImportOverlay.style.zIndex = '';
       state.confirmAction = null;
     }
 
