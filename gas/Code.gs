@@ -35,6 +35,7 @@ const CONFIG = {
     'Total Score', 'Percent', 'Status', 'Flagged',
     'PRIME Eligible', 'PRIME Status', 'PRIME Comment', 'PRIME Focus Areas', 'PRIME Printed At',
     'Vocab Found', 'Vocab Missing',
+    'Claim Comment', 'Evidence Comment', 'Reasoning Comment', 'Mechanics Comment',
     'Comment', 'Last Saved At', 'Last Saved By', 'Roster Loaded At', 'Essay Loaded At',
     'Last Viewed At'
   ],
@@ -365,38 +366,52 @@ function uploadEssays_(payload) {
 
 function saveGrade_(payload) {
   try {
-    return withDocumentWriteLock_(function() {
-      const ctx = readAppContext_();
-      const rubric = getRubric_();
-      const totalMax = getRubricTotal_(rubric);
-      const match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
+    if (!payload.studentId) throw new Error('Missing student ID.');
+    var savedStudent;
+    withDocumentWriteLock_(function() {
+      var ctx = readAppContext_();
+      var rubric = getRubric_();
+      var totalMax = getRubricTotal_(rubric);
+      var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
       if (!match) throw new Error('Could not find student ' + payload.studentId + '.');
-      const row = match.row;
-      const scores = payload.scores || {};
-      setRowValue_(row, ctx.headerMap, 'Claim Score', scoreOrBlank_(scores.claim));
-      setRowValue_(row, ctx.headerMap, 'Evidence Score', scoreOrBlank_(scores.evidence));
-      setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
-      setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
+      var row = match.row;
+      var scores = payload.scores || {};
+      if (Object.prototype.hasOwnProperty.call(scores, 'claim')) setRowValue_(row, ctx.headerMap, 'Claim Score', scoreOrBlank_(scores.claim));
+      if (Object.prototype.hasOwnProperty.call(scores, 'evidence')) setRowValue_(row, ctx.headerMap, 'Evidence Score', scoreOrBlank_(scores.evidence));
+      if (Object.prototype.hasOwnProperty.call(scores, 'reasoning')) setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
+      if (Object.prototype.hasOwnProperty.call(scores, 'mechanics')) setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
+      var criterionComments = payload.criterionComments || {};
+      setRowValue_(row, ctx.headerMap, 'Claim Comment', stringOrBlank_(criterionComments.claim));
+      setRowValue_(row, ctx.headerMap, 'Evidence Comment', stringOrBlank_(criterionComments.evidence));
+      setRowValue_(row, ctx.headerMap, 'Reasoning Comment', stringOrBlank_(criterionComments.reasoning));
+      setRowValue_(row, ctx.headerMap, 'Mechanics Comment', stringOrBlank_(criterionComments.mechanics));
       setRowValue_(row, ctx.headerMap, 'Comment', stringOrBlank_(payload.comment));
+      if (Object.prototype.hasOwnProperty.call(payload, 'totalScore')) {
+        setRowValue_(row, ctx.headerMap, 'Total Score', scoreOrBlank_(payload.totalScore));
+      }
       setRowValue_(row, ctx.headerMap, 'Flagged', truthy_(payload.flagged) ? 'YES' : 'NO');
-      setRowValue_(row, ctx.headerMap, 'Vocab Found', joinLabels_(payload.vocabFound));
-      setRowValue_(row, ctx.headerMap, 'Vocab Missing', joinLabels_(payload.vocabMissing));
+      if (!truthy_(payload.speedMode)) {
+        setRowValue_(row, ctx.headerMap, 'Vocab Found', joinLabels_(payload.vocabFound));
+        setRowValue_(row, ctx.headerMap, 'Vocab Missing', joinLabels_(payload.vocabMissing));
+      }
       setRowValue_(row, ctx.headerMap, 'Last Saved At', new Date());
       setRowValue_(row, ctx.headerMap, 'Last Saved By', getUserEmail_());
-      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax);
+      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax, { preserveDirectTotal: Object.prototype.hasOwnProperty.call(payload, 'totalScore') });
       writeSheetRow_(ctx.sheet, match.rowNumber, row);
-      const student = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
-      const responseStudents = ctx.rows.map(function(item, idx) {
-        return idx === match.index ? student : buildStudentFromRow_(item, ctx.headerMap, ctx.settings, rubric);
-      });
-      return {
-        ok: true,
-        student: student,
-        summary: summarizeStudents_(responseStudents.map(toStudentSummary_)),
-        totalMax: totalMax,
-        rubric: rubric
-      };
+      savedStudent = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
     });
+    const ctx2 = readAppContext_();
+    const rubric2 = getRubric_();
+    const allStudents = ctx2.rows.map(function(row) {
+      return buildStudentFromRow_(row, ctx2.headerMap, ctx2.settings, rubric2);
+    });
+    return {
+      ok: true,
+      student: savedStudent,
+      summary: summarizeStudents_(allStudents.map(toStudentSummary_)),
+      totalMax: getRubricTotal_(rubric2),
+      rubric: rubric2
+    };
   } catch (err) {
     logError_('saveGrade_', err, { studentId: payload && payload.studentId });
     return errorResponse_(err);
@@ -646,7 +661,8 @@ function writeRowsBatch_(sheet, rows, width) {
   sheet.getRange(2, 1, rows.length, width).setValues(rows);
 }
 
-function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
+function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, options) {
+  options = options || {};
   const claim = scoreOrBlank_(getValue_(row, headerMap, 'Claim Score'));
   const evidence = scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score'));
   const reasoning = scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score'));
@@ -656,10 +672,12 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
   const allPresent = scores.length > 0 && scores.every(function(score) { return score !== ''; });
   const currentStatus = stringOrBlank_(getValue_(row, headerMap, 'Status'));
   if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) return row;
-  const total = allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
-  const percent = allPresent && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
+  const directTotal = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
+  const useDirectTotal = options.preserveDirectTotal && directTotal !== '';
+  const total = useDirectTotal ? directTotal : allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
+  const percent = (useDirectTotal || allPresent) && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
   let status = CONFIG.STATUS.UNGRADED;
-  if (allPresent) status = CONFIG.STATUS.COMPLETE;
+  if (useDirectTotal || allPresent) status = CONFIG.STATUS.COMPLETE;
   else if (hasAny) status = CONFIG.STATUS.IN_PROGRESS;
   const primeEligible = status === CONFIG.STATUS.COMPLETE && Number(percent) < Number(settings['Revise To Percent'] || CONFIG.PRIME_THRESHOLD_PCT) ? 'YES' : 'NO';
   const currentPrimeStatus = stringOrBlank_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED;
@@ -705,6 +723,12 @@ function buildStudentFromRow_(row, headerMap, settings, rubric) {
       evidence: scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score')),
       reasoning: scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score')),
       mechanics: scoreOrBlank_(getValue_(row, headerMap, 'Mechanics Score'))
+    },
+    criterionComments: {
+      claim: stringOrBlank_(getValue_(row, headerMap, 'Claim Comment')),
+      evidence: stringOrBlank_(getValue_(row, headerMap, 'Evidence Comment')),
+      reasoning: stringOrBlank_(getValue_(row, headerMap, 'Reasoning Comment')),
+      mechanics: stringOrBlank_(getValue_(row, headerMap, 'Mechanics Comment'))
     },
     totalScore: scoreOrBlank_(getValue_(row, headerMap, 'Total Score')),
     percent: scoreOrBlank_(getValue_(row, headerMap, 'Percent')),
