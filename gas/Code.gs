@@ -1,17 +1,12 @@
-/*
- * Castaneda deployment wiring.
- * Keep the app logic aligned with the latest frontend while pointing this
- * deployment at Castaneda's own script, sheet, and teacher defaults.
- */
 const CONFIG = {
-  SPREADSHEET_ID: '16321xD-gOsrjXHpyu0FkOlnl4KgYIRLNKehP38ZTgmU',
-  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxIKypruOEqyrvfnLjvirKtgarbp8wRU62j0hrVVKGjd_Rv7onsQiMzy0flkgXtrL6ZFQ/exec',
-  SCRIPT_ID: '1_cRN9IAVBjqqykDRSDuIYOLIf5NQlwsHnuBjDKcPTbZUj5xoXy_UsNgx',
-  TEST_EMAIL_RECIPIENT: 'scastaneda@pausd.org',
+  SPREADSHEET_ID: '1MFTI_d3d6JVbB8EUhJYbIcc2m68BDyv862hF7NpNKfc',
+  WEB_APP_URL: 'https://script.google.com/a/macros/pausd.org/s/AKfycbwtgWnFWzLvq6DVgvFaBmeYqarN8V8NNuAmdhW5QYadpAgnZb1GcNgQHyxjFpsMEdKH/exec',
+  SCRIPT_ID: '1DMPQB5PCjrRj1_-OMpoBR5GJPxipWjYFJ70LzP4iW8xuvSRsyj-RsgZM',
+  TEST_EMAIL_RECIPIENT: 'ktinsley@pausd.org',
   ASSIGNMENT_TITLE: 'Iran Summative',
   COURSE_NAME: 'Contemporary World History',
   TOTAL_MAX: 20,
-  PRIME_THRESHOLD_PCT: 85,
+  PRIME_THRESHOLD_PCT: 90,
   CRIT_MAX: { claim: 4, evidence: 8, reasoning: 6, mechanics: 2 },
   SHEETS: {
     STUDENTS: 'Students',
@@ -31,40 +26,26 @@ const CONFIG = {
     NOT_NEEDED: 'Not Needed'
   },
   TEACHERS: {
-    tinsley: {
-      name: 'Mr. Tinsley',
-      email: 'ktinsley@pausd.org',
-      periods: ['3']
-    },
-    castaneda: {
-      name: 'Mr. Castaneda',
-      email: 'scastaneda@pausd.org',
-      periods: ['1', '2']
-    }
+    tinsley: { name: 'Mr. Tinsley', periods: ['3'] },
+    castaneda: { name: 'Mr. Castaneda', periods: ['1', '2'] }
   },
-  OWNER_TEACHER_KEY: 'castaneda',
   STUDENT_HEADERS: [
     'Student ID', 'Name', 'Sort Name', 'Period', 'Teacher', 'Email',
     'Essay', 'Claim Score', 'Evidence Score', 'Reasoning Score', 'Mechanics Score',
     'Total Score', 'Percent', 'Status', 'Flagged',
     'PRIME Eligible', 'PRIME Status', 'PRIME Comment', 'PRIME Focus Areas', 'PRIME Printed At',
     'Vocab Found', 'Vocab Missing',
-    'Claim Comment', 'Evidence Comment', 'Reasoning Comment', 'Mechanics Comment',
     'Comment', 'Last Saved At', 'Last Saved By', 'Roster Loaded At', 'Essay Loaded At',
-    'Last Viewed At', 'Email Sent', 'Email Sent At'
+    'Last Viewed At'
   ],
   SETTINGS_DEFAULTS: {
     'Assignment Title': 'Iran Summative',
     'Course Name': 'Contemporary World History',
-    'PRIME Comment Text': 'Come to PRIME to revise up to 85%.',
-    'PRIME Threshold': '85',
-    'Visit Below Percent': '84',
-    'Revise To Percent': '85',
-    'Speed Grade Default': 'true'
+    'PRIME Comment Text': 'Come to PRIME to revise up to 90%.',
+    'Visit Below Percent': '89',
+    'Revise To Percent': '90'
   }
 };
-
-const BACKEND_VERSION = 'lockfix-v5';
 
 const RUBRIC = [
   {
@@ -123,8 +104,6 @@ function doGet(e) {
     const action = stringOrBlank_(e && e.parameter && e.parameter.action);
     if (!action) return HtmlService.createHtmlOutput(buildStatusPage_()).setTitle('Iran Summative API');
     switch (action) {
-      case 'health':
-        return jsonOutput_({ ok: true, backendVersion: BACKEND_VERSION });
       case 'getStudents':
         return jsonOutput_(getStudents_(e.parameter.teacherKey));
       case 'getStudentDetails':
@@ -158,16 +137,6 @@ function doPost(e) {
         return jsonOutput_(markPrimePrinted_(payload));
       case 'saveRubric':
         return jsonOutput_(saveRubric_(payload));
-      case 'savePrimeSettings':
-        return jsonOutput_(savePrimeSettings_(payload));
-      case 'getMessageCenterData':
-        return jsonOutput_(getMessageCenterData(payload));
-      case 'getMessageCenterPreview':
-        return jsonOutput_(getMessageCenterPreview(payload));
-      case 'sendMessageCenterBatch':
-        return jsonOutput_(sendMessageCenterBatch(payload));
-      case 'sendMessageCenterTestEmail':
-        return jsonOutput_(sendMessageCenterTestEmail(payload));
       default:
         return jsonOutput_({ ok: false, message: 'Unknown action.' });
     }
@@ -370,7 +339,6 @@ function uploadEssays_(payload) {
       const now = new Date();
       let matched = 0;
       const unmatched = [];
-      const skipped = [];
       const lookup = buildNameLookup_(table.rows, table.headerMap);
       essays.forEach(function(entry) {
         const essayName = stringOrBlank_(entry.name);
@@ -381,18 +349,13 @@ function uploadEssays_(payload) {
           logAction_('unmatchedEssay', JSON.stringify({ name: essayName }));
           return;
         }
-        if (!essayText) {
-          skipped.push({ name: essayName, reason: 'Blank essay text' });
-          logAction_('skippedEssay', JSON.stringify({ name: essayName, reason: 'Blank essay text' }));
-          return;
-        }
         setRowValue_(match.row, table.headerMap, 'Essay', essayText);
         setRowValue_(match.row, table.headerMap, 'Essay Loaded At', now);
         matched += 1;
       });
       writeRowsBatch_(sheet, table.rows, table.headers.length);
-      logAction_('uploadEssays', JSON.stringify({ matched: matched, unmatched: unmatched.length, skipped: skipped.length }));
-      return { ok: true, matched: matched, unmatched: unmatched, skipped: skipped };
+      logAction_('uploadEssays', JSON.stringify({ matched: matched, unmatched: unmatched.length }));
+      return { ok: true, matched: matched, unmatched: unmatched };
     });
   } catch (err) {
     logError_('uploadEssays_', err);
@@ -402,54 +365,38 @@ function uploadEssays_(payload) {
 
 function saveGrade_(payload) {
   try {
-    if (!payload.studentId) throw new Error('Missing student ID.');
-    var savedStudent;
-    // Lock scope: write only — release before re-read
-    withDocumentWriteLock_(function() {
-      var ctx = readAppContext_();
-      var rubric = getRubric_();
-      var totalMax = getRubricTotal_(rubric);
-      var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
+    return withDocumentWriteLock_(function() {
+      const ctx = readAppContext_();
+      const rubric = getRubric_();
+      const totalMax = getRubricTotal_(rubric);
+      const match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
       if (!match) throw new Error('Could not find student ' + payload.studentId + '.');
-      var row = match.row;
-      var scores = payload.scores || {};
-      if (Object.prototype.hasOwnProperty.call(scores, 'claim')) setRowValue_(row, ctx.headerMap, 'Claim Score', scoreOrBlank_(scores.claim));
-      if (Object.prototype.hasOwnProperty.call(scores, 'evidence')) setRowValue_(row, ctx.headerMap, 'Evidence Score', scoreOrBlank_(scores.evidence));
-      if (Object.prototype.hasOwnProperty.call(scores, 'reasoning')) setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
-      if (Object.prototype.hasOwnProperty.call(scores, 'mechanics')) setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
-      var criterionComments = payload.criterionComments || {};
-      setRowValue_(row, ctx.headerMap, 'Claim Comment',     stringOrBlank_(criterionComments.claim));
-      setRowValue_(row, ctx.headerMap, 'Evidence Comment',  stringOrBlank_(criterionComments.evidence));
-      setRowValue_(row, ctx.headerMap, 'Reasoning Comment', stringOrBlank_(criterionComments.reasoning));
-      setRowValue_(row, ctx.headerMap, 'Mechanics Comment', stringOrBlank_(criterionComments.mechanics));
-      setRowValue_(row, ctx.headerMap, 'Comment',         stringOrBlank_(payload.comment));
-      if (Object.prototype.hasOwnProperty.call(payload, 'totalScore')) {
-        setRowValue_(row, ctx.headerMap, 'Total Score', scoreOrBlank_(payload.totalScore));
-      }
-      setRowValue_(row, ctx.headerMap, 'Flagged',         truthy_(payload.flagged) ? 'YES' : 'NO');
-      if (!truthy_(payload.speedMode)) {
-        setRowValue_(row, ctx.headerMap, 'Vocab Found', joinLabels_(payload.vocabFound));
-        setRowValue_(row, ctx.headerMap, 'Vocab Missing', joinLabels_(payload.vocabMissing));
-      }
-      setRowValue_(row, ctx.headerMap, 'Last Saved At',   new Date());
-      setRowValue_(row, ctx.headerMap, 'Last Saved By',   getUserEmail_());
-      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax, { preserveDirectTotal: Object.prototype.hasOwnProperty.call(payload, 'totalScore') });
+      const row = match.row;
+      const scores = payload.scores || {};
+      setRowValue_(row, ctx.headerMap, 'Claim Score', scoreOrBlank_(scores.claim));
+      setRowValue_(row, ctx.headerMap, 'Evidence Score', scoreOrBlank_(scores.evidence));
+      setRowValue_(row, ctx.headerMap, 'Reasoning Score', scoreOrBlank_(scores.reasoning));
+      setRowValue_(row, ctx.headerMap, 'Mechanics Score', scoreOrBlank_(scores.mechanics));
+      setRowValue_(row, ctx.headerMap, 'Comment', stringOrBlank_(payload.comment));
+      setRowValue_(row, ctx.headerMap, 'Flagged', truthy_(payload.flagged) ? 'YES' : 'NO');
+      setRowValue_(row, ctx.headerMap, 'Vocab Found', joinLabels_(payload.vocabFound));
+      setRowValue_(row, ctx.headerMap, 'Vocab Missing', joinLabels_(payload.vocabMissing));
+      setRowValue_(row, ctx.headerMap, 'Last Saved At', new Date());
+      setRowValue_(row, ctx.headerMap, 'Last Saved By', getUserEmail_());
+      recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax);
       writeSheetRow_(ctx.sheet, match.rowNumber, row);
-      savedStudent = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
+      const student = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
+      const responseStudents = ctx.rows.map(function(item, idx) {
+        return idx === match.index ? student : buildStudentFromRow_(item, ctx.headerMap, ctx.settings, rubric);
+      });
+      return {
+        ok: true,
+        student: student,
+        summary: summarizeStudents_(responseStudents.map(toStudentSummary_)),
+        totalMax: totalMax,
+        rubric: rubric
+      };
     });
-    // Re-read for summary response — outside the lock
-    var ctx2 = readAppContext_();
-    var rubric2 = getRubric_();
-    var allStudents = ctx2.rows.map(function(r) {
-      return buildStudentFromRow_(r, ctx2.headerMap, ctx2.settings, rubric2);
-    });
-    return {
-      ok: true,
-      student: savedStudent,
-      summary: summarizeStudents_(allStudents.map(toStudentSummary_)),
-      totalMax: getRubricTotal_(rubric2),
-      rubric: rubric2
-    };
   } catch (err) {
     logError_('saveGrade_', err, { studentId: payload && payload.studentId });
     return errorResponse_(err);
@@ -556,329 +503,6 @@ function saveRubric_(payload) {
     logError_('saveRubric_', err);
     return errorResponse_(err);
   }
-}
-
-function savePrimeSettings_(payload) {
-  try {
-    var threshold = normalizePrimeDisplayThreshold_(payload && payload.primeThreshold);
-    return withDocumentWriteLock_(function() {
-      var ss = bootstrapSpreadsheet_();
-      var settingsSheet = ss.getSheetByName(CONFIG.SHEETS.SETTINGS);
-      upsertSetting_(settingsSheet, 'PRIME Threshold', String(threshold));
-      upsertSetting_(settingsSheet, 'Revise To Percent', String(threshold));
-      upsertSetting_(settingsSheet, 'Visit Below Percent', String(getPrimeTriggerThreshold_(threshold)));
-      var settings = readSettings_(ss);
-      settings['PRIME Threshold'] = String(threshold);
-      settings['Revise To Percent'] = String(threshold);
-      settings['Visit Below Percent'] = String(getPrimeTriggerThreshold_(threshold));
-      var rubric = getRubric_();
-      var totalMax = getRubricTotal_(rubric);
-      var sheet = ss.getSheetByName(CONFIG.SHEETS.STUDENTS);
-      var table = readTable_(sheet);
-      table.rows.forEach(function(row) {
-        recomputeStudentRow_(row, table.headerMap, settings, rubric, totalMax);
-      });
-      writeRowsBatch_(sheet, table.rows, table.headers.length);
-      var students = table.rows.map(function(row) {
-        return buildStudentFromRow_(row, table.headerMap, settings, rubric);
-      });
-      return {
-        ok: true,
-        settings: settings,
-        threshold: threshold,
-        triggerThreshold: getPrimeTriggerThreshold_(threshold),
-        summary: summarizeStudents_(students.map(toStudentSummary_))
-      };
-    });
-  } catch (err) {
-    logError_('savePrimeSettings_', err);
-    return errorResponse_(err);
-  }
-}
-
-function getMessageCenterData(payload) {
-  try {
-    var teacherKey = stringOrBlank_(payload && payload.teacherKey).toLowerCase() || CONFIG.OWNER_TEACHER_KEY;
-    var ctx = readAppContext_();
-    var rubric = getRubric_();
-    var students = ctx.rows
-      .filter(function(row) {
-        return matchesTeacher_(getValue_(row, ctx.headerMap, 'Teacher'), teacherKey);
-      })
-      .map(function(row) {
-        return buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
-      })
-      .sort(compareStudents_);
-    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
-    var result = students.map(function(student) {
-      return {
-        studentId: student.studentId,
-        name: student.name,
-        sortName: student.sortName,
-        period: student.period,
-        email: student.email,
-        totalScore: student.totalScore,
-        percent: student.percent,
-        status: student.status,
-        primeEligible: student.primeEligible,
-        primeStatus: student.primeStatus,
-        comment: student.comment,
-        scores: student.scores,
-        criterionComments: student.criterionComments,
-        vocabFound: student.vocabFound,
-        vocabMissing: student.vocabMissing,
-        emailSent: student.emailSent,
-        emailSentAt: student.emailSentAt,
-        eligible: student.status === CONFIG.STATUS.COMPLETE && !!student.email
-      };
-    });
-    return {
-      ok: true,
-      students: result,
-      defaultSignoff: owner.name || 'Mr. Tinsley',
-      senderEmail: owner.email || '',
-      testRecipient: CONFIG.TEST_EMAIL_RECIPIENT,
-      ownerTeacherKey: CONFIG.OWNER_TEACHER_KEY
-    };
-  } catch (err) {
-    logError_('getMessageCenterData', err);
-    return errorResponse_(err);
-  }
-}
-
-function getMessageCenterPreview(payload) {
-  try {
-    if (!payload || !payload.studentId) throw new Error('Missing student ID.');
-    var ctx = readAppContext_();
-    var rubric = getRubric_();
-    var totalMax = getRubricTotal_(rubric);
-    var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
-    if (!match) throw new Error('Student not found.');
-    var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
-    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
-    var signoff = stringOrBlank_(payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
-    var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
-    var subject = buildEmailSubject_(student, ctx.settings);
-    return {
-      ok: true,
-      to: student.email || '(no email)',
-      subject: subject,
-      htmlContent: html,
-      emailAlreadySent: student.emailSent === 'Yes',
-      emailSentAt: student.emailSentAt,
-      finalComment: student.comment
-    };
-  } catch (err) {
-    logError_('getMessageCenterPreview', err);
-    return errorResponse_(err);
-  }
-}
-
-function sendMessageCenterBatch(payload) {
-  try {
-    var students = Array.isArray(payload && payload.students) ? payload.students : [];
-    var includeAlreadySent = !!(payload && payload.includeAlreadySent);
-    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
-    var signoff = stringOrBlank_(payload && payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
-    var counts = {
-      sentCount: 0,
-      skippedAlreadySentCount: 0,
-      skippedIncompleteCount: 0,
-      missingEmailCount: 0,
-      errorsCount: 0
-    };
-
-    withDocumentWriteLock_(function() {
-      var ctx = readAppContext_();
-      var rubric = getRubric_();
-      var totalMax = getRubricTotal_(rubric);
-
-      students.forEach(function(item) {
-        var match = findStudentRow_(ctx.rows, ctx.headerMap, item.studentId);
-        if (!match) {
-          counts.errorsCount += 1;
-          return;
-        }
-        var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
-        if (student.status !== CONFIG.STATUS.COMPLETE) {
-          counts.skippedIncompleteCount += 1;
-          return;
-        }
-        if (!student.email) {
-          counts.missingEmailCount += 1;
-          return;
-        }
-        if (student.emailSent === 'Yes' && !includeAlreadySent) {
-          counts.skippedAlreadySentCount += 1;
-          return;
-        }
-        try {
-          var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
-          var subject = buildEmailSubject_(student, ctx.settings);
-          GmailApp.sendEmail(student.email, subject, '', {
-            htmlBody: html,
-            name: signoff
-          });
-          setRowValue_(match.row, ctx.headerMap, 'Email Sent', 'Yes');
-          setRowValue_(match.row, ctx.headerMap, 'Email Sent At', new Date());
-          writeSheetRow_(ctx.sheet, match.rowNumber, match.row);
-          counts.sentCount += 1;
-        } catch (sendErr) {
-          logError_('sendMessageCenterBatch:send', sendErr, { studentId: student.studentId });
-          counts.errorsCount += 1;
-        }
-      });
-    });
-
-    var ctx2 = readAppContext_();
-    var rubric2 = getRubric_();
-    var allStudents = ctx2.rows
-      .map(function(row) {
-        var s = toStudentSummary_(buildStudentFromRow_(row, ctx2.headerMap, ctx2.settings, rubric2));
-        s.eligible = s.status === CONFIG.STATUS.COMPLETE && !!s.email;
-        return s;
-      })
-      .sort(compareStudents_);
-
-    logAction_('sendMessageCenterBatch', JSON.stringify({
-      sentCount: counts.sentCount,
-      errors: counts.errorsCount,
-      owner: CONFIG.OWNER_TEACHER_KEY
-    }));
-    return {
-      ok: true,
-      sentCount: counts.sentCount,
-      skippedAlreadySentCount: counts.skippedAlreadySentCount,
-      skippedIncompleteCount: counts.skippedIncompleteCount,
-      missingEmailCount: counts.missingEmailCount,
-      errorsCount: counts.errorsCount,
-      students: allStudents
-    };
-  } catch (err) {
-    logError_('sendMessageCenterBatch', err);
-    return errorResponse_(err);
-  }
-}
-
-function sendMessageCenterTestEmail(payload) {
-  try {
-    if (!payload || !payload.studentId) throw new Error('Missing student ID.');
-    var ctx = readAppContext_();
-    var rubric = getRubric_();
-    var totalMax = getRubricTotal_(rubric);
-    var match = findStudentRow_(ctx.rows, ctx.headerMap, payload.studentId);
-    if (!match) throw new Error('Student not found.');
-    var student = buildStudentFromRow_(match.row, ctx.headerMap, ctx.settings, rubric);
-    var owner = CONFIG.TEACHERS[CONFIG.OWNER_TEACHER_KEY] || {};
-    var signoff = stringOrBlank_(payload.teacherSignoff) || owner.name || 'Mr. Tinsley';
-    var html = buildRubricEmailHtml_(student, rubric, totalMax, signoff, ctx.settings);
-    var subject = '[TEST] ' + buildEmailSubject_(student, ctx.settings);
-    GmailApp.sendEmail(CONFIG.TEST_EMAIL_RECIPIENT, subject, '', {
-      htmlBody: html,
-      name: signoff
-    });
-    logAction_('sendMessageCenterTestEmail', JSON.stringify({
-      studentId: student.studentId,
-      owner: CONFIG.OWNER_TEACHER_KEY
-    }));
-    return { ok: true, to: CONFIG.TEST_EMAIL_RECIPIENT, studentName: student.name };
-  } catch (err) {
-    logError_('sendMessageCenterTestEmail', err);
-    return errorResponse_(err);
-  }
-}
-
-function buildEmailSubject_(student, settings) {
-  var assignmentTitle = (settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
-  var courseName = (settings && settings['Course Name']) || CONFIG.COURSE_NAME;
-  return assignmentTitle + ' Feedback — ' + courseName;
-}
-
-function buildRubricEmailHtml_(student, rubric, totalMax, signoff, settings) {
-  var assignmentTitle = (settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
-  var courseName = (settings && settings['Course Name']) || CONFIG.COURSE_NAME;
-  var firstName = stringOrBlank_(student.name).split(/\s+/).filter(Boolean)[0] || 'there';
-  var totalScore = student.totalScore === '' ? '-' : escapeHtml_(String(student.totalScore));
-  var percentText = student.percent === '' ? '' : ' (' + escapeHtml_(String(student.percent)) + '%)';
-  var statusBadge = '<span style="display:inline-block;background:#e8eefc;border-radius:999px;color:#1f2937;font-size:0.82rem;font-weight:700;margin-left:10px;padding:6px 10px;vertical-align:middle;">' +
-    escapeHtml_(student.status || CONFIG.STATUS.UNGRADED) + '</span>';
-  var primeThreshold = getPrimeDisplayThresholdFromSettings_(settings);
-  var pointsNeeded = Math.max(0, Math.ceil(totalMax * primeThreshold / 100) - Number(student.totalScore || 0));
-  var primeCommentText = stringOrBlank_(settings && settings['PRIME Comment Text']);
-  var rubricHtml = (rubric || []).map(function(criterion) {
-    var score = student.scores && student.scores[criterion.key];
-    var band = (criterion.bands || []).find(function(item) {
-      return Number(item.score) === Number(score);
-    });
-    var bandLabel = band ? band.label : score !== '' && score !== null && score !== undefined ? 'Custom Score' : 'Not scored';
-    var bandText = band ? band.text : '';
-    var comment = stringOrBlank_(student.criterionComments && student.criterionComments[criterion.key]);
-    return '' +
-      '<div style="border:1px solid #e5e7eb;border-radius:10px;margin:16px 0;padding:18px;">' +
-        '<div style="align-items:flex-start;display:flex;gap:12px;justify-content:space-between;">' +
-          '<div style="color:#111827;font-size:1rem;font-weight:700;">' + escapeHtml_(criterion.title) + '</div>' +
-          '<div style="color:#4a40e0;font-size:1rem;font-weight:800;">' + escapeHtml_(String(score === '' ? '-' : score)) + '/' + escapeHtml_(String(criterion.max)) + '</div>' +
-        '</div>' +
-        '<div style="color:' + (bandLabel === 'Not scored' ? '#9ca3af' : '#6b7280') + ';font-size:0.74em;font-variant:small-caps;font-weight:700;letter-spacing:0.06em;margin-top:8px;text-transform:uppercase;">' + escapeHtml_(bandLabel) + '</div>' +
-        (bandText ? '<div style="color:#6b7280;font-size:0.9em;font-style:italic;margin:8px 0 0;">' + escapeHtml_(bandText) + '</div>' : '') +
-        (comment ? (
-          '<div style="background:rgba(74,64,224,0.07);border-left:3px solid #4a40e0;border-radius:6px;margin-top:10px;padding:12px 14px;">' +
-            '<div style="color:#4a40e0;font-size:0.7em;font-weight:800;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;">Teacher Comment</div>' +
-            '<div style="color:#1f2937;white-space:pre-wrap;">' + escapeHtml_(comment) + '</div>' +
-          '</div>'
-        ) : '') +
-      '</div>';
-  }).join('');
-  var overallCommentHtml = stringOrBlank_(student.comment) ? (
-    '<div style="background:rgba(74,64,224,0.05);border-left:3px solid #4a40e0;border-radius:6px;margin:20px 0 0;padding:14px 16px;">' +
-      '<div style="color:#4a40e0;font-size:0.7em;font-weight:800;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;">Overall Feedback</div>' +
-      '<div style="color:#1f2937;white-space:pre-wrap;">' + escapeHtml_(student.comment) + '</div>' +
-    '</div>'
-  ) : '';
-  var vocabHtml = '';
-  if (student.vocabMissing && student.vocabMissing.length > 0) {
-    vocabHtml = '' +
-      '<div style="margin-top:20px;">' +
-        '<div style="color:#111827;font-size:0.95rem;font-weight:700;margin-bottom:6px;">Vocabulary</div>' +
-        '<div style="color:#b45309;font-size:0.9rem;">Missing terms: ' + escapeHtml_(student.vocabMissing.join(', ')) + '</div>' +
-      '</div>';
-  } else if (student.vocabFound && student.vocabFound.length > 0) {
-    vocabHtml = '<div style="color:#006947;font-size:0.92rem;font-weight:700;margin-top:20px;">&#10003; All vocabulary terms used</div>';
-  }
-
-  return '' +
-    '<div style="background:#f3f4f6;margin:0;padding:0;">' +
-      '<div style="background:#1a1a2e;color:#ffffff;padding:16px 24px;">' +
-        '<table role="presentation" style="border-collapse:collapse;width:100%;"><tr>' +
-          '<td style="font-size:1.05rem;font-weight:700;">' + escapeHtml_(assignmentTitle) + '</td>' +
-          '<td style="font-size:0.95rem;text-align:right;">' + escapeHtml_(courseName) + '</td>' +
-        '</tr></table>' +
-      '</div>' +
-      '<div style="background:#ffffff;font-family:Arial,sans-serif;margin:0 auto;max-width:600px;padding:24px;">' +
-        '<div style="color:#111827;font-size:1rem;margin-bottom:4px;">Hi ' + escapeHtml_(firstName) + ',</div>' +
-        '<div style="color:#6b7280;font-size:0.95rem;">Here is your feedback for ' + escapeHtml_(assignmentTitle) + '.</div>' +
-        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;margin:20px 0;padding:20px;">' +
-          '<div style="color:#4a40e0;font-size:2.5rem;font-weight:800;line-height:1;">' + totalScore +
-            '<span style="color:#6b7280;font-size:1.2rem;font-weight:600;">/' + escapeHtml_(String(totalMax)) + '</span>' +
-          '</div>' +
-          '<div style="color:#6b7280;font-size:0.98rem;margin-top:10px;">' + percentText + statusBadge + '</div>' +
-        '</div>' +
-        (student.primeEligible === 'YES' ? (
-          '<div style="background:#fffbeb;border-left:5px solid #f59e0b;border-radius:8px;margin:20px 0;padding:18px 20px;">' +
-            '<div style="color:#b45309;font-size:1rem;font-weight:800;margin-bottom:8px;">&#128204; PRIME Revision Eligible</div>' +
-            '<div style="color:#78350f;line-height:1.5;">You need ' + escapeHtml_(String(pointsNeeded)) + ' more point(s) to reach ' + escapeHtml_(String(primeThreshold)) + '%. Visit PRIME to revise your essay.</div>' +
-            (primeCommentText ? '<div style="color:#92400e;font-size:0.9rem;line-height:1.45;margin-top:8px;">' + escapeHtml_(primeCommentText) + '</div>' : '') +
-          '</div>'
-        ) : '') +
-        rubricHtml +
-        overallCommentHtml +
-        vocabHtml +
-        '<div style="border-top:1px solid #e5e7eb;color:#9ca3af;font-size:0.82em;margin-top:24px;padding-top:16px;">' +
-          '<div>' + escapeHtml_(signoff) + ' — ' + escapeHtml_(courseName) + '</div>' +
-          '<div style="margin-top:4px;">This feedback is for your review. Reply to this email with any questions.</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
 }
 
 function readAppContext_() {
@@ -1013,33 +637,16 @@ function setRowValue_(row, headerMap, header, value) {
 }
 
 function writeSheetRow_(sheet, rowNumber, row) {
-  const width = Math.max(row.length, CONFIG.STUDENT_HEADERS.length);
-  const padded = row.slice();
-  while (padded.length < width) padded.push('');
-  sheet.getRange(rowNumber, 1, 1, width).setValues([padded]);
+  sheet.getRange(rowNumber, 1, 1, row.length).setValues([row]);
 }
 
 function writeRowsBatch_(sheet, rows, width) {
-  if (!rows || !rows.length) return;
-  var effectiveWidth = Math.max(width || 0, CONFIG.STUDENT_HEADERS.length);
-  // Write each row to its actual position rather than clearing the range.
-  // New rows (rowNumber beyond current last row) are appended via appendRow
-  // so they don't collide with existing data from other teachers.
-  var lastExisting = sheet.getLastRow();
-  rows.forEach(function(row, index) {
-    var rowNumber = index + 2; // data starts at row 2
-    var padded = row.slice();
-    while (padded.length < effectiveWidth) padded.push('');
-    if (rowNumber <= lastExisting) {
-      sheet.getRange(rowNumber, 1, 1, effectiveWidth).setValues([padded]);
-    } else {
-      sheet.appendRow(padded);
-    }
-  });
+  if (!rows.length) return;
+  sheet.getRange(2, 1, Math.max(rows.length, 1), width).clearContent();
+  sheet.getRange(2, 1, rows.length, width).setValues(rows);
 }
 
-function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, options) {
-  options = options || {};
+function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax) {
   const claim = scoreOrBlank_(getValue_(row, headerMap, 'Claim Score'));
   const evidence = scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score'));
   const reasoning = scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score'));
@@ -1049,15 +656,12 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
   const allPresent = scores.length > 0 && scores.every(function(score) { return score !== ''; });
   const currentStatus = stringOrBlank_(getValue_(row, headerMap, 'Status'));
   if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) return row;
-  const directTotal = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
-  const useDirectTotal = options.preserveDirectTotal && directTotal !== '';
-  const total = useDirectTotal ? directTotal : allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
-  const percent = (useDirectTotal || allPresent) && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
+  const total = allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
+  const percent = allPresent && totalMax ? round1_((Number(total) / totalMax) * 100) : '';
   let status = CONFIG.STATUS.UNGRADED;
-  if (useDirectTotal || allPresent) status = CONFIG.STATUS.COMPLETE;
+  if (allPresent) status = CONFIG.STATUS.COMPLETE;
   else if (hasAny) status = CONFIG.STATUS.IN_PROGRESS;
-  const primeTriggerThreshold = getPrimeTriggerThresholdFromSettings_(settings);
-  const primeEligible = status === CONFIG.STATUS.COMPLETE && Number(percent) < primeTriggerThreshold ? 'YES' : 'NO';
+  const primeEligible = status === CONFIG.STATUS.COMPLETE && Number(percent) < Number(settings['Revise To Percent'] || CONFIG.PRIME_THRESHOLD_PCT) ? 'YES' : 'NO';
   const currentPrimeStatus = stringOrBlank_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED;
   var nextPrimeStatus = currentPrimeStatus;
   if (primeEligible === 'YES' && currentPrimeStatus === CONFIG.PRIME_STATUS.NOT_NEEDED) nextPrimeStatus = CONFIG.PRIME_STATUS.NEEDS;
@@ -1089,75 +693,39 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
 function buildStudentFromRow_(row, headerMap, settings, rubric) {
   const actualRubric = rubric || RUBRIC;
   const student = {
-    studentId: stringFromCell_(getValue_(row, headerMap, 'Student ID')),
-    name: stringFromCell_(getValue_(row, headerMap, 'Name')),
-    sortName: stringFromCell_(getValue_(row, headerMap, 'Sort Name')),
-    period: stringFromCell_(getValue_(row, headerMap, 'Period')),
-    teacher: stringFromCell_(getValue_(row, headerMap, 'Teacher')),
-    email: stringFromCell_(getValue_(row, headerMap, 'Email')),
-    essay: stringFromCell_(getValue_(row, headerMap, 'Essay')),
+    studentId: stringOrBlank_(getValue_(row, headerMap, 'Student ID')),
+    name: stringOrBlank_(getValue_(row, headerMap, 'Name')),
+    sortName: stringOrBlank_(getValue_(row, headerMap, 'Sort Name')),
+    period: stringOrBlank_(getValue_(row, headerMap, 'Period')),
+    teacher: stringOrBlank_(getValue_(row, headerMap, 'Teacher')),
+    email: stringOrBlank_(getValue_(row, headerMap, 'Email')),
+    essay: stringOrBlank_(getValue_(row, headerMap, 'Essay')),
     scores: {
       claim: scoreOrBlank_(getValue_(row, headerMap, 'Claim Score')),
       evidence: scoreOrBlank_(getValue_(row, headerMap, 'Evidence Score')),
       reasoning: scoreOrBlank_(getValue_(row, headerMap, 'Reasoning Score')),
       mechanics: scoreOrBlank_(getValue_(row, headerMap, 'Mechanics Score'))
     },
-    criterionComments: {
-      claim: stringFromCell_(getValue_(row, headerMap, 'Claim Comment')),
-      evidence: stringFromCell_(getValue_(row, headerMap, 'Evidence Comment')),
-      reasoning: stringFromCell_(getValue_(row, headerMap, 'Reasoning Comment')),
-      mechanics: stringFromCell_(getValue_(row, headerMap, 'Mechanics Comment'))
-    },
     totalScore: scoreOrBlank_(getValue_(row, headerMap, 'Total Score')),
     percent: scoreOrBlank_(getValue_(row, headerMap, 'Percent')),
-    status: stringFromCell_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED,
+    status: stringOrBlank_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED,
     flagged: stringOrBlank_(getValue_(row, headerMap, 'Flagged')) === 'YES',
-    primeEligible: stringFromCell_(getValue_(row, headerMap, 'PRIME Eligible')) || 'NO',
-    primeStatus: stringFromCell_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED,
-    primeComment: stringFromCell_(getValue_(row, headerMap, 'PRIME Comment')) || stringFromCell_(settings['PRIME Comment Text']),
-    primeFocusAreas: stringFromCell_(getValue_(row, headerMap, 'PRIME Focus Areas')),
+    primeEligible: stringOrBlank_(getValue_(row, headerMap, 'PRIME Eligible')) || 'NO',
+    primeStatus: stringOrBlank_(getValue_(row, headerMap, 'PRIME Status')) || CONFIG.PRIME_STATUS.NOT_NEEDED,
+    primeComment: stringOrBlank_(getValue_(row, headerMap, 'PRIME Comment')) || stringOrBlank_(settings['PRIME Comment Text']),
+    primeFocusAreas: stringOrBlank_(getValue_(row, headerMap, 'PRIME Focus Areas')),
     primePrintedAt: dateToIso_(getValue_(row, headerMap, 'PRIME Printed At')),
     vocabFound: splitLabels_(getValue_(row, headerMap, 'Vocab Found')),
     vocabMissing: splitLabels_(getValue_(row, headerMap, 'Vocab Missing')),
-    comment: stringFromCell_(getValue_(row, headerMap, 'Comment')),
+    comment: stringOrBlank_(getValue_(row, headerMap, 'Comment')),
     lastSavedAt: dateToIso_(getValue_(row, headerMap, 'Last Saved At')),
-    lastSavedBy: stringFromCell_(getValue_(row, headerMap, 'Last Saved By')),
+    lastSavedBy: stringOrBlank_(getValue_(row, headerMap, 'Last Saved By')),
     rosterLoadedAt: dateToIso_(getValue_(row, headerMap, 'Roster Loaded At')),
     essayLoadedAt: dateToIso_(getValue_(row, headerMap, 'Essay Loaded At')),
-    emailSent: stringFromCell_(getValue_(row, headerMap, 'Email Sent')) || 'No',
-    emailSentAt: dateToIso_(getValue_(row, headerMap, 'Email Sent At')),
-    hasEssay: !!stringFromCell_(getValue_(row, headerMap, 'Essay')),
+    hasEssay: !!stringOrBlank_(getValue_(row, headerMap, 'Essay')),
     rubric: actualRubric
   };
   return student;
-}
-
-function normalizePrimeDisplayThreshold_(value) {
-  var parsed = Number(value);
-  if (isNaN(parsed)) return CONFIG.PRIME_THRESHOLD_PCT;
-  return Math.max(1, Math.min(100, Math.round(parsed)));
-}
-
-function getPrimeDisplayThresholdFromSettings_(settings) {
-  if (settings && settings['PRIME Threshold'] !== undefined && settings['PRIME Threshold'] !== '') {
-    return normalizePrimeDisplayThreshold_(settings['PRIME Threshold']);
-  }
-  if (settings && settings['Revise To Percent'] !== undefined && settings['Revise To Percent'] !== '') {
-    return normalizePrimeDisplayThreshold_(settings['Revise To Percent']);
-  }
-  if (settings && settings['Visit Below Percent'] !== undefined && settings['Visit Below Percent'] !== '') {
-    return normalizePrimeDisplayThreshold_(Number(settings['Visit Below Percent']) + 1);
-  }
-  return CONFIG.PRIME_THRESHOLD_PCT;
-}
-
-function getPrimeTriggerThreshold_(displayThreshold) {
-  return Math.max(0, normalizePrimeDisplayThreshold_(displayThreshold) - 1);
-}
-
-function getPrimeTriggerThresholdFromSettings_(settings) {
-  var displayThreshold = getPrimeDisplayThresholdFromSettings_(settings);
-  return getPrimeTriggerThreshold_(displayThreshold);
 }
 
 function toStudentSummary_(student) {
@@ -1169,17 +737,13 @@ function toStudentSummary_(student) {
     teacher: student.teacher,
     email: student.email,
     status: student.status,
-    scores: student.scores,
     totalScore: student.totalScore,
     percent: student.percent,
     flagged: student.flagged,
     primeEligible: student.primeEligible,
     primeStatus: student.primeStatus,
-    comment: student.comment,
     vocabFound: student.vocabFound,
     vocabMissing: student.vocabMissing,
-    emailSent: student.emailSent,
-    emailSentAt: student.emailSentAt,
     hasEssay: student.hasEssay
   };
 }
@@ -1212,12 +776,6 @@ function scoreOrBlank_(value) {
 
 function stringOrBlank_(value) {
   if (value === null || value === undefined) return '';
-  return String(value).trim();
-}
-
-function stringFromCell_(value) {
-  if (value === null || value === undefined || value === '') return '';
-  if (value instanceof Date) return '';
   return String(value).trim();
 }
 
@@ -1328,16 +886,10 @@ function buildNameLookup_(rows, headerMap) {
 function tryMarkStudentViewed_(rowNumber, headerMap) {
   try {
     if (headerMap['Last Viewed At'] === undefined) return;
-    var lock = getWriteLock_();
-    if (!lock.tryLock(0)) return; // bail immediately — not worth contending
-    try {
-      var sheet = getSpreadsheet_().getSheetByName(CONFIG.SHEETS.STUDENTS);
-      if (sheet) sheet.getRange(rowNumber, headerMap['Last Viewed At'] + 1).setValue(new Date());
-    } finally {
-      lock.releaseLock();
-    }
+    const sheet = getSpreadsheet_().getSheetByName(CONFIG.SHEETS.STUDENTS);
+    sheet.getRange(rowNumber, headerMap['Last Viewed At'] + 1).setValue(new Date());
   } catch (err) {
-    // silently ignore — last viewed at timestamp is not critical
+    console.warn(err);
   }
 }
 
@@ -1390,9 +942,7 @@ function buildStatusPage_() {
     '</head><body>',
     '<h1>Iran Summative API</h1>',
     '<p>This Apps Script deployment is live.</p>',
-    '<p>Backend version: <code>' + BACKEND_VERSION + '</code></p>',
-    '<p>Health: <code>?action=health</code></p>',
-    '<p>Reads: <code>?action=getStudents&amp;teacherKey=castaneda</code></p>',
+    '<p>Reads: <code>?action=getStudents&amp;teacherKey=tinsley</code></p>',
     '<p>Writes: <code>POST {"action":"saveGrade",...}</code></p>',
     '</body></html>'
   ].join('');
