@@ -1046,7 +1046,7 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
   const mechanics = scoreOrBlank_(getValue_(row, headerMap, 'Mechanics Score'));
   const scores = [claim, evidence, reasoning, mechanics];
   const hasAny = scores.some(function(score) { return score !== ''; });
-  const allPresent = scores.every(function(score) { return score !== ''; });
+  const allPresent = scores.length > 0 && scores.every(function(score) { return score !== ''; });
   const currentStatus = stringOrBlank_(getValue_(row, headerMap, 'Status'));
   if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) return row;
   const directTotal = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
