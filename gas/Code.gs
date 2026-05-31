@@ -37,7 +37,7 @@ const CONFIG = {
     'Vocab Found', 'Vocab Missing',
     'Claim Comment', 'Evidence Comment', 'Reasoning Comment', 'Mechanics Comment',
     'Comment', 'Last Saved At', 'Last Saved By', 'Roster Loaded At', 'Essay Loaded At',
-    'Last Viewed At'
+    'Last Viewed At', 'Schoology Score', 'Schoology Comment'
   ],
   SETTINGS_DEFAULTS: {
     'Assignment Title': 'Iran Summative',
@@ -111,6 +111,8 @@ function doGet(e) {
         return jsonOutput_(getStudentDetails_(e.parameter.studentId, e.parameter.teacherKey));
       case 'getAnalytics':
         return jsonOutput_(getAnalytics_(e.parameter.teacherKey));
+      case 'getSchoology':
+        return jsonOutput_(getSchoology_(e.parameter.teacherKey));
       default:
         return jsonOutput_({ ok: false, message: 'Unknown action: ' + action });
     }
@@ -280,6 +282,35 @@ function getAnalytics_(teacherKey) {
     };
   } catch (err) {
     logError_('getAnalytics_', err, { teacherKey: teacherKey });
+    return errorResponse_(err);
+  }
+}
+
+function getSchoology_(teacherKey) {
+  try {
+    const ctx = readAppContext_();
+    const rubric = getRubric_();
+    const totalMax = getRubricTotal_(rubric);
+    const students = ctx.rows
+      .filter(function(row) {
+        return matchesTeacher_(getValue_(row, ctx.headerMap, 'Teacher'), teacherKey);
+      })
+      .map(function(row) {
+        const student = buildStudentFromRow_(row, ctx.headerMap, ctx.settings, rubric);
+        return {
+          studentId: student.studentId,
+          name: student.name,
+          period: student.period,
+          status: student.status,
+          percent: student.percent,
+          schoologyScore: student.schoologyScore || buildSchoologyScore_(student.status, student.totalScore),
+          schoologyComment: student.schoologyComment || buildFinalCommentFromRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax)
+        };
+      })
+      .sort(compareStudents_);
+    return { ok: true, students: students };
+  } catch (err) {
+    logError_('getSchoology_', err, { teacherKey: teacherKey });
     return errorResponse_(err);
   }
 }
@@ -456,6 +487,8 @@ function markNoSubmission_(payload) {
         setRowValue_(row, ctx.headerMap, 'PRIME Status', CONFIG.PRIME_STATUS.NOT_NEEDED);
         setRowValue_(row, ctx.headerMap, 'Total Score', '');
         setRowValue_(row, ctx.headerMap, 'Percent', '');
+        setRowValue_(row, ctx.headerMap, 'Schoology Score', '');
+        setRowValue_(row, ctx.headerMap, 'Schoology Comment', buildNoSubmissionComment_(ctx.settings));
       } else {
         recomputeStudentRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax);
       }
@@ -671,7 +704,11 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
   const hasAny = scores.some(function(score) { return score !== ''; });
   const allPresent = scores.length > 0 && scores.every(function(score) { return score !== ''; });
   const currentStatus = stringOrBlank_(getValue_(row, headerMap, 'Status'));
-  if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) return row;
+  if (currentStatus === CONFIG.STATUS.NO_SUBMISSION) {
+    setRowValue_(row, headerMap, 'Schoology Score', '');
+    setRowValue_(row, headerMap, 'Schoology Comment', buildNoSubmissionComment_(settings));
+    return row;
+  }
   const directTotal = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
   const useDirectTotal = options.preserveDirectTotal && directTotal !== '';
   const total = useDirectTotal ? directTotal : allPresent ? round1_(sum_(scores.map(Number))) : hasAny ? round1_(sum_(scores.filter(function(score) { return score !== ''; }).map(Number))) : '';
@@ -705,6 +742,8 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
   setRowValue_(row, headerMap, 'PRIME Eligible', primeEligible);
   setRowValue_(row, headerMap, 'PRIME Status', nextPrimeStatus);
   setRowValue_(row, headerMap, 'PRIME Focus Areas', focusAreas.join(', '));
+  setRowValue_(row, headerMap, 'Schoology Score', buildSchoologyScore_(status, total));
+  setRowValue_(row, headerMap, 'Schoology Comment', buildFinalCommentFromRow_(row, headerMap, settings, rubric, totalMax));
   return row;
 }
 
@@ -746,6 +785,8 @@ function buildStudentFromRow_(row, headerMap, settings, rubric) {
     lastSavedBy: stringOrBlank_(getValue_(row, headerMap, 'Last Saved By')),
     rosterLoadedAt: dateToIso_(getValue_(row, headerMap, 'Roster Loaded At')),
     essayLoadedAt: dateToIso_(getValue_(row, headerMap, 'Essay Loaded At')),
+    schoologyScore: stringOrBlank_(getValue_(row, headerMap, 'Schoology Score')),
+    schoologyComment: stringOrBlank_(getValue_(row, headerMap, 'Schoology Comment')),
     hasEssay: !!stringOrBlank_(getValue_(row, headerMap, 'Essay')),
     rubric: actualRubric
   };
@@ -768,8 +809,71 @@ function toStudentSummary_(student) {
     primeStatus: student.primeStatus,
     vocabFound: student.vocabFound,
     vocabMissing: student.vocabMissing,
+    schoologyScore: student.schoologyScore,
+    schoologyComment: student.schoologyComment,
     hasEssay: student.hasEssay
   };
+}
+
+function buildSchoologyScore_(status, totalScore) {
+  return status === CONFIG.STATUS.COMPLETE && totalScore !== '' ? String(totalScore) : '';
+}
+
+function buildNoSubmissionComment_(settings) {
+  const assignmentTitle = stringOrBlank_(settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
+  return [assignmentTitle + ' Feedback', 'Status: ' + CONFIG.STATUS.NO_SUBMISSION].join('\n');
+}
+
+function buildFinalCommentFromRow_(row, headerMap, settings, rubric, totalMax) {
+  const assignmentTitle = stringOrBlank_(settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
+  const status = stringOrBlank_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED;
+  if (status === CONFIG.STATUS.NO_SUBMISSION) return buildNoSubmissionComment_(settings);
+
+  const totalScore = scoreOrBlank_(getValue_(row, headerMap, 'Total Score'));
+  const percent = scoreOrBlank_(getValue_(row, headerMap, 'Percent'));
+  const lines = [assignmentTitle + ' Feedback'];
+  if (status === CONFIG.STATUS.COMPLETE && totalScore !== '') {
+    lines.push('Score: ' + totalScore + '/' + totalMax + (percent === '' ? '' : ' (' + percent + '%)'));
+  } else {
+    lines.push('Status: ' + status);
+  }
+
+  (rubric || RUBRIC).forEach(function(criterion) {
+    const score = scoreOrBlank_(getValue_(row, headerMap, criterion.scoreHeader));
+    const comments = {
+      claim: 'Claim Comment',
+      evidence: 'Evidence Comment',
+      reasoning: 'Reasoning Comment',
+      mechanics: 'Mechanics Comment'
+    };
+    const comment = stringOrBlank_(getValue_(row, headerMap, comments[criterion.key]));
+    lines.push('');
+    lines.push(criterion.title + ': ' + (score === '' ? '-' : score) + '/' + criterion.max);
+    if (comment) lines.push(comment);
+  });
+
+  const overallComment = stringOrBlank_(getValue_(row, headerMap, 'Comment'));
+  if (overallComment) {
+    lines.push('');
+    lines.push(overallComment);
+  }
+
+  const vocabMissing = stringOrBlank_(getValue_(row, headerMap, 'Vocab Missing'));
+  if (vocabMissing) {
+    lines.push('');
+    lines.push('Missing vocab: ' + vocabMissing);
+  }
+
+  const primeEligible = stringOrBlank_(getValue_(row, headerMap, 'PRIME Eligible'));
+  if (primeEligible === 'YES') {
+    const primeComment = stringOrBlank_(getValue_(row, headerMap, 'PRIME Comment')) || stringOrBlank_(settings && settings['PRIME Comment Text']);
+    const focusAreas = stringOrBlank_(getValue_(row, headerMap, 'PRIME Focus Areas'));
+    lines.push('');
+    if (primeComment) lines.push('PRIME: ' + primeComment);
+    if (focusAreas) lines.push('Focus areas: ' + focusAreas);
+  }
+
+  return lines.join('\n');
 }
 
 function normalizeForMatch_(value) {

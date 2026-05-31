@@ -1225,6 +1225,7 @@
       isSaving: false,
       mode: 'grading',
       analytics: null,
+      schoologyStudents: [],
       rosterRows: [],
       essayRows: [],
       highlightMode: false,
@@ -1429,22 +1430,9 @@
           <div>
             <p class="eyebrow">Copy + Paste</p>
             <h3><i class="ti ti-copy"></i> Schoology Mode</h3>
-            <p class="section-note">Quick export rows for the current teacher view with score, status, and stitched feedback.</p>
-          </div>
-          <div class="schoology-actions">
-            <button class="secondary-btn" id="copySchoologyRowsBtn" type="button"><i class="ti ti-copy"></i> Copy All Rows</button>
-            <button class="secondary-btn" id="copySchoologyCommentsBtn" type="button"><i class="ti ti-message"></i> Copy Comments Only</button>
+            <p class="section-note">Copy each student score and feedback into Schoology.</p>
           </div>
         </div>
-        <article class="schoology-card">
-          <div class="schoology-head">
-            <div>
-              <strong>Batch Rows</strong>
-              <p class="section-note" id="schoologySummary">Rows update from the current grading data.</p>
-            </div>
-          </div>
-          <div class="schoology-output" id="schoologyRowsOutput"></div>
-        </article>
         <div class="schoology-list" id="schoologyList"></div>
       </section>
 
@@ -1745,7 +1733,7 @@
         'errorBox', 'gradingContent', 'analyticsContent', 'schoologyContent', 'rubricEditorContent', 'emptyState', 'vocabSummary', 'wordBankPills',
         'boldBtn', 'italicBtn', 'underlineBtn', 'fontSizeSelect', 'lineSpacingSelect', 'highlightToggleBtn', 'clearHighlightsBtn',
         'essayQuestionsBtn', 'essayQuestionsPanel', 'citationWarning', 'essayContent', 'resizeHandle', 'rubricList', 'rubricEyebrow', 'noSubmissionBtn', 'analyticsGrid',
-        'schoologyList', 'schoologyRowsOutput', 'schoologySummary', 'copySchoologyRowsBtn', 'copySchoologyCommentsBtn',
+        'schoologyList',
         'rubricEditorBody', 'rubricEditorNote', 'rubricSavePill', 'rubricResetBtn', 'rubricSaveBtn', 'rubricErrorBox',
         'toast', 'confirmModal', 'confirmEyebrow', 'confirmTitle', 'confirmBody', 'confirmClose', 'confirmCancel', 'confirmOk',
         'messageCenterModal', 'messageCenterClose', 'messageCenterSignoff', 'messageCenterIncludeSent', 'messageCenterShowIncomplete',
@@ -1811,8 +1799,6 @@
       els.lateOpenScraperLink.addEventListener('click', handleLateScraperLink);
       els.lateEssayFileInput.addEventListener('change', handleLateEssayFile);
       els.confirmLateImportBtn.addEventListener('click', confirmLateEssayUpload);
-      els.copySchoologyRowsBtn.addEventListener('click', function() { copySchoologyBundle('rows'); });
-      els.copySchoologyCommentsBtn.addEventListener('click', function() { copySchoologyBundle('comments'); });
       els.savePrimeThresholdBtn.addEventListener('click', savePrimeThresholdSetting);
       els.primeThresholdInput.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
@@ -2820,7 +2806,14 @@
       closeSettingsMenu();
       state.mode = 'schoology';
       updateModeVisibility();
-      renderSchoology();
+      try {
+        var response = await apiGet('getSchoology');
+        if (!response.ok) return showError(response.message || 'Unable to load Schoology data.');
+        state.schoologyStudents = response.students || [];
+        renderSchoology();
+      } catch (err) {
+        showError(err.message || String(err));
+      }
     }
 
     function renderAnalytics(data) {
@@ -2857,16 +2850,13 @@
       }).join('') + '</tbody></table>';
     }
 
-    function renderSchoology() {
-      var students = schoologyStudents();
-      var rowLines = students.map(buildSchoologyRowLine);
-      els.schoologySummary.textContent = students.length + ' row' + (students.length === 1 ? '' : 's') + ' ready for the current teacher view.';
-      els.schoologyRowsOutput.textContent = rowLines.length
-        ? ['Student Name\tScore\tComment'].concat(rowLines).join('\n')
-        : 'No students are available in this view yet.';
+    function renderSchoology(students) {
+      students = (students || state.schoologyStudents || []).filter(function(student) {
+        return state.periodFilter === 'All' || String(student.period) === String(state.periodFilter);
+      });
       els.schoologyList.innerHTML = students.length ? students.map(function(student) {
-        var score = formatSchoologyScore(student);
-        var comment = buildSchoologyComment(student);
+        var score = student.schoologyScore || '-';
+        var comment = student.schoologyComment || '';
         return '' +
           '<article class="schoology-card">' +
             '<div class="schoology-row">' +
@@ -2880,25 +2870,18 @@
                 '<div class="schoology-meta">' +
                   '<span class="status-badge" data-status="' + escapeAttr(student.status || 'Ungraded') + '">' + escapeHtml(student.status || 'Ungraded') + '</span>' +
                   '<span class="selected-band-chip">' + escapeHtml(score) + '</span>' +
-                  (student.primeEligible === 'YES' ? '<span class="prime-badge"><i class="ti ti-pencil-plus"></i> ' + escapeHtml(student.primeStatus || 'Needs PRIME') + '</span>' : '') +
                 '</div>' +
                 '<div class="schoology-comment">' + escapeHtml(comment) + '</div>' +
               '</div>' +
               '<div class="schoology-row-copy">' +
-                '<button class="secondary-btn" type="button" data-schoology-copy-row="' + escapeAttr(buildSchoologyRowLine(student)) + '"><i class="ti ti-copy"></i> Copy Row</button>' +
-                '<button class="secondary-btn" type="button" data-schoology-copy-comment="' + escapeAttr(buildSchoologyCommentOnlyLine(student)) + '"><i class="ti ti-message"></i> Copy Comment</button>' +
+                '<button class="secondary-btn" type="button" data-schoology-copy="' + escapeAttr((student.schoologyScore || '') + '\n\n' + (student.schoologyComment || '')) + '"><i class="ti ti-copy"></i> Copy</button>' +
               '</div>' +
             '</div>' +
           '</article>';
       }).join('') : '<article class="schoology-card"><p class="section-note">No students are available in this view yet.</p></article>';
-      Array.prototype.slice.call(els.schoologyList.querySelectorAll('[data-schoology-copy-row]')).forEach(function(button) {
+      Array.prototype.slice.call(els.schoologyList.querySelectorAll('[data-schoology-copy]')).forEach(function(button) {
         button.addEventListener('click', function() {
-          copyText(button.getAttribute('data-schoology-copy-row') || '', 'Schoology row copied.');
-        });
-      });
-      Array.prototype.slice.call(els.schoologyList.querySelectorAll('[data-schoology-copy-comment]')).forEach(function(button) {
-        button.addEventListener('click', function() {
-          copyText(button.getAttribute('data-schoology-copy-comment') || '', 'Schoology comment copied.');
+          copyText(button.getAttribute('data-schoology-copy') || '', 'Schoology feedback copied.');
         });
       });
     }
