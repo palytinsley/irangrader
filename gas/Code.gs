@@ -290,7 +290,6 @@ function getSchoology_(teacherKey) {
   try {
     const ctx = readAppContext_();
     const rubric = getRubric_();
-    const totalMax = getRubricTotal_(rubric);
     const students = ctx.rows
       .filter(function(row) {
         return matchesTeacher_(getValue_(row, ctx.headerMap, 'Teacher'), teacherKey);
@@ -304,7 +303,7 @@ function getSchoology_(teacherKey) {
           status: student.status,
           percent: student.percent,
           schoologyScore: student.schoologyScore || buildSchoologyScore_(student.status, student.totalScore),
-          schoologyComment: student.schoologyComment || buildFinalCommentFromRow_(row, ctx.headerMap, ctx.settings, rubric, totalMax)
+          schoologyComment: buildSchoologyComment_(row, ctx.headerMap, ctx.settings)
         };
       })
       .sort(compareStudents_);
@@ -743,7 +742,7 @@ function recomputeStudentRow_(row, headerMap, settings, rubric, totalMax, option
   setRowValue_(row, headerMap, 'PRIME Status', nextPrimeStatus);
   setRowValue_(row, headerMap, 'PRIME Focus Areas', focusAreas.join(', '));
   setRowValue_(row, headerMap, 'Schoology Score', buildSchoologyScore_(status, total));
-  setRowValue_(row, headerMap, 'Schoology Comment', buildFinalCommentFromRow_(row, headerMap, settings, rubric, totalMax));
+  setRowValue_(row, headerMap, 'Schoology Comment', buildSchoologyComment_(row, headerMap, settings));
   return row;
 }
 
@@ -822,6 +821,12 @@ function buildSchoologyScore_(status, totalScore) {
 function buildNoSubmissionComment_(settings) {
   const assignmentTitle = stringOrBlank_(settings && settings['Assignment Title']) || CONFIG.ASSIGNMENT_TITLE;
   return [assignmentTitle + ' Feedback', 'Status: ' + CONFIG.STATUS.NO_SUBMISSION].join('\n');
+}
+
+function buildSchoologyComment_(row, headerMap, settings) {
+  const status = stringOrBlank_(getValue_(row, headerMap, 'Status')) || CONFIG.STATUS.UNGRADED;
+  if (status === CONFIG.STATUS.NO_SUBMISSION) return buildNoSubmissionComment_(settings);
+  return stringOrBlank_(getValue_(row, headerMap, 'Comment'));
 }
 
 function buildFinalCommentFromRow_(row, headerMap, settings, rubric, totalMax) {
